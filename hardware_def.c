@@ -38,7 +38,7 @@ void set_gpio_select(int id, int function)
 
 void set_gpio_dir(int id, int state)
 {
-    if (state == 1) // output
+    if (state == GPIO_OUTPUT)
     {
         if (id < 100)
         {
@@ -53,7 +53,7 @@ void set_gpio_dir(int id, int state)
             LPC_GPIO2->FIODIR |= _BIT(id - 200);
         }
     }
-    else
+    else // GPIO_INPUT
     {
         if (id < 100)
         {
@@ -127,7 +127,7 @@ int get_gpio_pin(int id)
 	return 0;
 }
 
-void InitGpio(void)
+void GpioInit(void)
 {
 #ifdef LPC_X_DEBUG
     set_gpio_select(LED2,0);

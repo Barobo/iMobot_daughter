@@ -11,15 +11,9 @@
 #define ADC_DONE		0x80000000
 #define ADC_OVERRUN		0x40000000
 #define ADC_ADINT		0x00010000
+#define PCADC			12
+#define ADC_CLK			1000000
 
-#define ADC_NUM			8		/* for LPCxxxx */
-#define ADC_CLK			1000000		/* set to 1Mhz */
-
-
-extern uint32_t ADCInit( uint32_t ADC_Clk );
-extern uint32_t ADC0Read( uint8_t channelNum );
-extern void ADCBurstRead( void );
+extern void AdcInit(void);
+extern int32_t  AdcRead(uint8_t channelNum);
 #endif /* end __ADC_H */
-/*****************************************************************************
-**                            End Of File
-******************************************************************************/

@@ -23,11 +23,11 @@ typedef struct
 } ScheduledEvent;
 
 // Prototypes
-int32_t RegisterCallback(SchedulerCallback callbackFunction, uint32_t run_time);
-void ServiceCallbacks(uint32_t current_time);
-int32_t EnableCallback(SchedulerCallback func);
-int32_t DisableCallback(SchedulerCallback func);
-void set_callback_divisor(uint32_t interval);
+int32_t CallbackRegister(SchedulerCallback callbackFunction, uint32_t run_time);
+void    CallbackService(uint32_t current_time);
+int32_t CallbackEnable(SchedulerCallback func);
+int32_t CallbackDisable(SchedulerCallback func);
+void    set_callback_divisor(uint32_t interval);
 
 extern volatile uint32_t callback_divisor;
 

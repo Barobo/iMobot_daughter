@@ -2,6 +2,7 @@
 #define GLOBAL_H
 
 #include "LPC17xx.h"
+#include "system_LPC17xx.h"
 
 #define TRUE 1
 #define FALSE 0

@@ -5,20 +5,22 @@
 #include "callback.h"
 #include "consoleprint.h"
 #include "motor.h"
+#include "adc.h"
 
-void ServiceEncoder(void);
+void TestFunc(void);
 
 char buffer[30];
 
 int main(void)
 {
     SystemInit();
-	InitGpio();
+	GpioInit();
+	AdcInit();
 
-	InitTimer(0, 100ul * _millisecond);
-    RegisterCallback(ServiceEncoder, 500ul * _millisecond);
-	EnableCallback(ServiceEncoder);
-	EnableTimer(0);
+	TimerInit(0, 100ul * _millisecond);
+    CallbackRegister(TestFunc, 500ul * _millisecond);
+	CallbackEnable(TestFunc);
+	TimerEnable(0);
 
 	MotorInit();
 	MotorStart();
@@ -27,9 +29,9 @@ int main(void)
 	return 0;
 }
 
-void ServiceEncoder(void)
+void TestFunc(void)
 {
 	set_gpio_pin(LED2, GPIO_TOGGLE);
-    //snprintf(buffer,30,"%d\n",get_encoder_duty_percent(1));
-    //consoleprint(buffer);
+    snprintf(buffer,30,"%d\n",AdcRead(ADC_BAT));
+    consoleprint(buffer);
 }

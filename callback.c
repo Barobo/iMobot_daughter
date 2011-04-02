@@ -6,7 +6,7 @@ uint8_t event_count = 0;
 volatile uint32_t callback_divisor = 1;
 ScheduledEvent event_list[MAX_CALLBACK_CNT];
 
-int32_t RegisterCallback(SchedulerCallback callbackFunction, uint32_t run_time)
+int32_t CallbackRegister(SchedulerCallback callbackFunction, uint32_t run_time)
 {
 	// if the run time is less than the timer period, kick out
 	if (run_time < callback_divisor)
@@ -28,7 +28,7 @@ int32_t RegisterCallback(SchedulerCallback callbackFunction, uint32_t run_time)
     }
 }
 
-void ServiceCallbacks(uint32_t current_time)
+void CallbackService(uint32_t current_time)
 {
     uint8_t i = 0;
     for (i = 0;i < event_count;i++)
@@ -41,7 +41,7 @@ void ServiceCallbacks(uint32_t current_time)
     }
 }
 
-int32_t EnableCallback(SchedulerCallback func)
+int32_t CallbackEnable(SchedulerCallback func)
 {
     uint8_t i = 0;
     for (i = 0;i < event_count;i++)
@@ -56,7 +56,7 @@ int32_t EnableCallback(SchedulerCallback func)
     return (-1);
 }
 
-int32_t DisableCallback(SchedulerCallback func)
+int32_t CallbackDisable(SchedulerCallback func)
 {
     uint8_t i = 0;
     for (i = 0;i < event_count;i++)

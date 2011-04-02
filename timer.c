@@ -9,7 +9,7 @@ volatile uint32_t now = 0;
 void TIMER0_IRQHandler(void)
 {
     LPC_TIM0->IR = 1; /* clear interrupt flag */
-    ServiceCallbacks(++now);
+    CallbackService(++now);
     return;
 }
 
@@ -19,7 +19,7 @@ void TIMER1_IRQHandler(void)
     return;
 }
 
-void EnableTimer(uint8_t timer_num)
+void TimerEnable(uint8_t timer_num)
 {
     if(timer_num == 0)
     {
@@ -32,7 +32,7 @@ void EnableTimer(uint8_t timer_num)
     return;
 }
 
-void DisableTimer(uint8_t timer_num)
+void TimerDisable(uint8_t timer_num)
 {
     if(timer_num == 0)
     {
@@ -45,7 +45,7 @@ void DisableTimer(uint8_t timer_num)
     return;
 }
 
-void ResetTimer(uint8_t timer_num)
+void TimerReset(uint8_t timer_num)
 {
     uint32_t regVal;
 
@@ -64,7 +64,7 @@ void ResetTimer(uint8_t timer_num)
     return;
 }
 
-uint32_t InitTimer(uint8_t timer_num, uint32_t interval)
+uint32_t TimerInit(uint8_t timer_num, uint32_t interval)
 {
     if(timer_num == 0)
     {
