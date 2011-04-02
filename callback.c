@@ -3,22 +3,32 @@
 #include "global.h"
 
 uint8_t event_count = 0;
-volatile uint32_t callback_mult = 1;
+volatile uint32_t callback_divisor = 1;
 ScheduledEvent event_list[MAX_CALLBACK_CNT];
 
-void RegisterCallback(SchedulerCallback callbackFunction, uint32_t run_time)
+int32_t RegisterCallback(SchedulerCallback callbackFunction, uint32_t run_time)
 {
+	// if the run time is less than the timer period, kick out
+	if (run_time < callback_divisor)
+	{
+		return (-1);
+	}
     if (event_count < sizeof(event_list) / sizeof(SchedulerCallback))
     {
         event_list[event_count].enabled       = FALSE;
         event_list[event_count].func          = callbackFunction;
-        event_list[event_count].run_time      = run_time;
-        event_list[event_count].next_run_time = now + run_time;
+        event_list[event_count].run_time      = run_time / callback_divisor;
+        event_list[event_count].next_run_time = now + run_time / callback_divisor;
         event_count++;
+        return (0);
+    }
+    else
+    {
+    	return (-1);
     }
 }
 
-void RunCallbacks(uint32_t current_time)
+void ServiceCallbacks(uint32_t current_time)
 {
     uint8_t i = 0;
     for (i = 0;i < event_count;i++)
@@ -31,7 +41,7 @@ void RunCallbacks(uint32_t current_time)
     }
 }
 
-void EnableCallback(SchedulerCallback func)
+int32_t EnableCallback(SchedulerCallback func)
 {
     uint8_t i = 0;
     for (i = 0;i < event_count;i++)
@@ -40,12 +50,13 @@ void EnableCallback(SchedulerCallback func)
         {
             event_list[i].enabled = TRUE;
             event_list[i].next_run_time = now + event_list[i].run_time;
-            break;
+            return (0);
         }
     }
+    return (-1);
 }
 
-void DisableCallback(SchedulerCallback func)
+int32_t DisableCallback(SchedulerCallback func)
 {
     uint8_t i = 0;
     for (i = 0;i < event_count;i++)
@@ -53,7 +64,13 @@ void DisableCallback(SchedulerCallback func)
         if (func == event_list[i].func)
         {
             event_list[i].enabled = FALSE;
-            break;
+            return (0);
         }
     }
+    return (-1);
+}
+
+void set_callback_divisor(uint32_t interval)
+{
+	callback_divisor = interval;
 }

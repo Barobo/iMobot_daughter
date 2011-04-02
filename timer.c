@@ -9,7 +9,7 @@ volatile uint32_t now = 0;
 void TIMER0_IRQHandler(void)
 {
     LPC_TIM0->IR = 1; /* clear interrupt flag */
-    RunCallbacks(++now);
+    ServiceCallbacks(++now);
     return;
 }
 
@@ -64,21 +64,23 @@ void ResetTimer(uint8_t timer_num)
     return;
 }
 
-uint32_t InitTimer(uint8_t timer_num, uint32_t interval_100ns)
+uint32_t InitTimer(uint8_t timer_num, uint32_t interval)
 {
     if(timer_num == 0)
     {
-        LPC_TIM0->MR0 = (MAIN_CLOCK / _100_NS_DIVIDER) * interval_100ns;
+    	// Interval is in 1us.
+    	// The main clock is 100Mhz, so each clock cycle is 10ns.
+        LPC_TIM0->MR0 = (MAIN_CLOCK / BASE_TIMER_DIVISOR) * interval;
         LPC_TIM0->MCR = 3; // Interrupt and Reset on MR0
 
-        callback_mult = interval_100ns;
+        set_callback_divisor(interval);
 
         NVIC_EnableIRQ(TIMER0_IRQn);
         return (TRUE);
     }
     else if(timer_num == 1)
     {
-        LPC_TIM1->MR0 = (MAIN_CLOCK / _100_NS_DIVIDER) * interval_100ns;
+        LPC_TIM0->MR0 = (MAIN_CLOCK / BASE_TIMER_DIVISOR) * interval;
         LPC_TIM1->MCR = 3; // Interrupt and Reset on MR1
 
         NVIC_EnableIRQ(TIMER1_IRQn);

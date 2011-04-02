@@ -15,8 +15,8 @@ int main(void)
     SystemInit();
 	InitGpio();
 
-	InitTimer(0, 1ul * _1_MS);
-    RegisterCallback(ServiceEncoder, 1000ul);
+	InitTimer(0, 100ul * _millisecond);
+    RegisterCallback(ServiceEncoder, 500ul * _millisecond);
 	EnableCallback(ServiceEncoder);
 	EnableTimer(0);
 
@@ -24,11 +24,12 @@ int main(void)
 	MotorStart();
 
 	while(1);
-	return 0 ;
+	return 0;
 }
 
 void ServiceEncoder(void)
 {
-    snprintf(buffer,30,"%d\n",get_encoder_duty_percent(1));
-    consoleprint(buffer);
+	set_gpio_pin(LED2, GPIO_TOGGLE);
+    //snprintf(buffer,30,"%d\n",get_encoder_duty_percent(1));
+    //consoleprint(buffer);
 }
