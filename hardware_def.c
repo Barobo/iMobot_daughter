@@ -1,5 +1,5 @@
-#include "LPC17xx.h"
 #include "hardware_def.h"
+#include "global.h"
 
 // See user manual page 108 for function descriptions
 void set_gpio_select(int id, int function)
@@ -131,12 +131,12 @@ void GpioInit(void)
 {
 #ifdef LPC_X_DEBUG
     set_gpio_select(LED2,0);
-    set_gpio_dir(LED2,1);
+    set_gpio_dir(LED2,GPIO_OUTPUT);
 #endif
     set_gpio_select(RED_LED,0);
-    set_gpio_dir(RED_LED,1);
+    set_gpio_dir(RED_LED,GPIO_OUTPUT);
     set_gpio_select(GREEN_LED,0);
-    set_gpio_dir(GREEN_LED,1);
+    set_gpio_dir(GREEN_LED,GPIO_OUTPUT);
 
     // Init Timer
 

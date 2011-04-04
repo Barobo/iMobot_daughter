@@ -1,13 +1,3 @@
-/*****************************************************************************
- *   uart.h:  Header file for NXP LPC17xx Family Microprocessors
- *
- *   Copyright(C) 2009, NXP Semiconductor
- *   All rights reserved.
- *
- *   History
- *   2009.05.27  ver 1.00    Prelimnary version, first Release
- *
-******************************************************************************/
 #ifndef __UART_H 
 #define __UART_H
 
@@ -32,12 +22,8 @@
 
 #define BUFSIZE		0x40
 
-uint32_t UARTInit( uint32_t portNum, uint32_t Baudrate );
-void UART0_IRQHandler( void );
-void UART1_IRQHandler( void );
-void UARTSend( uint32_t portNum, uint8_t *BufferPtr, uint32_t Length );
+void            UART1_IRQHandler(void);
+extern uint32_t UartInit(uint32_t Baudrate);
+extern void     UartSend(uint8_t *BufferPtr, uint32_t Length);
 
-#endif /* end __UART_H */
-/*****************************************************************************
-**                            End Of File
-******************************************************************************/
+#endif // end __UART_H

@@ -1,10 +1,3 @@
-/*
- * motor.h
- *
- *  Created on: Mar 12, 2011
- *      Author: Joe
- */
-
 #ifndef MOTOR_H_
 #define MOTOR_H_
 

@@ -1,11 +1,12 @@
-#include "main.h"
 #include "global.h"
+#include "main.h"
 #include "hardware_def.h"
 #include "timer.h"
 #include "callback.h"
 #include "consoleprint.h"
 #include "motor.h"
 #include "adc.h"
+#include "uart.h"
 
 void TestFunc(void);
 

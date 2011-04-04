@@ -1,6 +1,5 @@
-#include "lpc17xx.h"
+#include "global.h"
 #include "encoder.h"
-#include "hardware_def.h"
 #include "timer.h"
 
 int32_t EncoderRead(uint32_t channel)

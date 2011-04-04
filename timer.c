@@ -1,7 +1,6 @@
-#include "lpc17xx.h"
+#include "global.h"
 #include "timer.h"
 #include "callback.h"
-#include "global.h"
 
 volatile uint32_t now = 0;
 

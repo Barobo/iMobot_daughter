@@ -1,7 +1,5 @@
-
-#include "lpc17xx.h"
+#include "global.h"
 #include "motor.h"
-#include "hardware_def.h"
 
 uint32_t MotorInit()
 {

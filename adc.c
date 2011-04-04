@@ -1,7 +1,5 @@
-#include "lpc17xx.h"
-#include "adc.h"
 #include "global.h"
-#include "hardware_def.h"
+#include "adc.h"
 
 void AdcInit(void)
 {
@@ -34,7 +32,6 @@ void AdcInit(void)
 int32_t AdcRead(uint8_t channelNum)
 {
 	uint32_t regVal, ADC_Data;
-
 
 	LPC_ADC->ADCR &= 0xFFFFFF00;
 	LPC_ADC->ADCR |= _BIT(24) | _BIT(channelNum);
