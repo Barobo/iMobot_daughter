@@ -8,9 +8,9 @@
  *   2009.05.26  ver 1.00    Prelimnary version, first Release
  *
 ******************************************************************************/
-#ifndef __I2C_H 
+#ifndef __I2C_H
 #define __I2C_H
-
+#define PCI2C			19
 #define BUFSIZE			0x20
 #define MAX_TIMEOUT		0x00FFFFFF
 
@@ -18,7 +18,7 @@
 #define I2CSLAVE		0x02
 
 /* For more info, read Philips's LM95 datasheet */
-#define LM75_ADDR		0x90
+#define LM75_ADDR		0x91
 #define LM75_TEMP		0x00
 #define LM75_CONFIG		0x01
 #define LM75_THYST		0x02

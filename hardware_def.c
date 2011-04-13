@@ -36,6 +36,69 @@ void set_gpio_select(int id, int function)
 	}
 }
 
+void set_gpio_pull(int id, int up)
+{
+	if (id < 16)
+	{
+		LPC_PINCON->PINMODE0 &= ~(3 << (id * 2));
+		LPC_PINCON->PINMODE0 |= (up << (id * 2));
+	}
+	else if (id < 100)
+	{
+		LPC_PINCON->PINMODE1 &= ~(3 << ((id - 16) * 2));
+		LPC_PINCON->PINMODE1	|= (up << ((id - 16) * 2));
+	}
+	else if (id < 116)
+	{
+		LPC_PINCON->PINMODE2 &= ~(3 << ((id - 100) * 2));
+		LPC_PINCON->PINMODE2	|= (up << ((id - 100) * 2));
+	}
+	else if (id < 200)
+	{
+		LPC_PINCON->PINMODE3 &= ~(3 << ((id - 116) * 2));
+		LPC_PINCON->PINMODE3	|= (up << ((id - 116) * 2));
+	}
+	else if (id < 216)
+	{
+		LPC_PINCON->PINMODE4 &= ~(3 << ((id - 200) * 2));
+		LPC_PINCON->PINMODE4	|= (up << ((id - 200) * 2));
+	}
+	else if (id < 300)
+	{
+		LPC_PINCON->PINMODE5 &= ~(3 << ((id - 216) * 2));
+		LPC_PINCON->PINMODE5	|= (up << ((id - 216) * 2));
+	}
+}
+
+void set_gpio_od(int id, int od)
+{
+	if (id < 16)
+	{
+		LPC_PINCON->PINMODE_OD0 &= ~(3 << (id * 2));
+		LPC_PINCON->PINMODE_OD0 |= (od << (id * 2));
+	}
+	else if (id < 100)
+	{
+		LPC_PINCON->PINMODE_OD1 &= ~(3 << ((id - 16) * 2));
+		LPC_PINCON->PINMODE_OD1	|= (od << ((id - 16) * 2));
+	}
+	else if (id < 116)
+	{
+		LPC_PINCON->PINMODE_OD2 &= ~(3 << ((id - 100) * 2));
+		LPC_PINCON->PINMODE_OD2	|= (od << ((id - 100) * 2));
+	}
+	else if (id < 200)
+	{
+		LPC_PINCON->PINMODE_OD3 &= ~(3 << ((id - 116) * 2));
+		LPC_PINCON->PINMODE_OD3	|= (od << ((id - 116) * 2));
+	}
+	else if (id < 216)
+	{
+		LPC_PINCON->PINMODE_OD4 &= ~(3 << ((id - 200) * 2));
+		LPC_PINCON->PINMODE_OD4	|= (od << ((id - 200) * 2));
+	}
+}
+
 void set_gpio_dir(int id, int state)
 {
     if (state == GPIO_OUTPUT)

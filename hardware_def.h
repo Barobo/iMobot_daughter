@@ -8,6 +8,8 @@
 #define BETWEEN(X,Y,Z) ((Y) > (X) && (Y) < (Z))
 
 void set_gpio_select(int id, int function);
+void set_gpio_pull(int id, int up);
+void set_gpio_od(int id, int od);
 void set_gpio_dir(int id, int state);
 void set_gpio_pin(int id, int state);
 void clr_gpio_pin(int id);
