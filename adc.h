@@ -10,6 +10,6 @@
 #define PCADC			12
 #define ADC_CLK			1000000
 
-extern void    AdcInit(void);
+extern void AdcInit(void);
 extern int32_t AdcRead(uint8_t channelNum);
 #endif // end __ADC_H

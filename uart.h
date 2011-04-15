@@ -22,8 +22,8 @@
 
 #define BUFSIZE		0x40
 
-void            UART1_IRQHandler(void);
+void UART1_IRQHandler(void);
 extern uint32_t UartInit(uint32_t Baudrate);
-extern void     UartSend(uint8_t *BufferPtr, uint32_t Length);
+extern void UartSend(uint8_t *BufferPtr, uint32_t Length);
 
 #endif // end __UART_H

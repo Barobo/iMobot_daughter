@@ -36,8 +36,9 @@
 // The entry point for the C++ library startup
 //
 //*****************************************************************************
-extern "C" {
-	extern void __libc_init_array(void);
+extern "C"
+{
+    extern void __libc_init_array(void);
 }
 #endif
 #endif
@@ -53,7 +54,8 @@ extern "C" {
 
 //*****************************************************************************
 #if defined (__cplusplus)
-extern "C" {
+extern "C"
+{
 #endif
 
 //*****************************************************************************
@@ -63,7 +65,7 @@ extern "C" {
 // automatically take precedence over these weak definitions
 //
 //*****************************************************************************
-     void ResetISR(void);
+void ResetISR(void);
 WEAK void NMI_Handler(void);
 WEAK void HardFault_Handler(void);
 WEAK void MemManage_Handler(void);
@@ -149,62 +151,63 @@ extern void _vStackTop(void);
 //*****************************************************************************
 extern void (* const g_pfnVectors[])(void);
 __attribute__ ((section(".isr_vector")))
-void (* const g_pfnVectors[])(void) = {
-	// Core Level - CM3
-	&_vStackTop, // The initial stack pointer
-	ResetISR,								// The reset handler
-	NMI_Handler,							// The NMI handler
-	HardFault_Handler,						// The hard fault handler
-	MemManage_Handler,						// The MPU fault handler
-	BusFault_Handler,						// The bus fault handler
-	UsageFault_Handler,						// The usage fault handler
-	0,										// Reserved
-	0,										// Reserved
-	0,										// Reserved
-	0,										// Reserved
-	SVCall_Handler,							// SVCall handler
-	DebugMon_Handler,						// Debug monitor handler
-	0,										// Reserved
-	PendSV_Handler,							// The PendSV handler
-	SysTick_Handler,						// The SysTick handler
+void (* const g_pfnVectors[])(void) =
+{
+// Core Level - CM3
+        &_vStackTop, // The initial stack pointer
+        ResetISR, // The reset handler
+        NMI_Handler, // The NMI handler
+        HardFault_Handler, // The hard fault handler
+        MemManage_Handler, // The MPU fault handler
+        BusFault_Handler, // The bus fault handler
+        UsageFault_Handler, // The usage fault handler
+        0, // Reserved
+        0, // Reserved
+        0, // Reserved
+        0, // Reserved
+        SVCall_Handler, // SVCall handler
+        DebugMon_Handler, // Debug monitor handler
+        0, // Reserved
+        PendSV_Handler, // The PendSV handler
+        SysTick_Handler, // The SysTick handler
 
-	// Chip Level - LPC17
-	WDT_IRQHandler,							// 16, 0x40 - WDT
-	TIMER0_IRQHandler,						// 17, 0x44 - TIMER0
-	TIMER1_IRQHandler,						// 18, 0x48 - TIMER1
-	TIMER2_IRQHandler,						// 19, 0x4c - TIMER2
-	TIMER3_IRQHandler,						// 20, 0x50 - TIMER3
-	UART0_IRQHandler,						// 21, 0x54 - UART0
-	UART1_IRQHandler,						// 22, 0x58 - UART1
-	UART2_IRQHandler,						// 23, 0x5c - UART2
-	UART3_IRQHandler,						// 24, 0x60 - UART3
-	PWM1_IRQHandler,						// 25, 0x64 - PWM1
-	I2C0_IRQHandler,						// 26, 0x68 - I2C0
-	I2C1_IRQHandler,						// 27, 0x6c - I2C1
-	I2C2_IRQHandler,						// 28, 0x70 - I2C2
-	SPI_IRQHandler,							// 29, 0x74 - SPI
-	SSP0_IRQHandler,						// 30, 0x78 - SSP0
-	SSP1_IRQHandler,						// 31, 0x7c - SSP1
-	PLL0_IRQHandler,						// 32, 0x80 - PLL0 (Main PLL)
-	RTC_IRQHandler,							// 33, 0x84 - RTC
-	EINT0_IRQHandler,						// 34, 0x88 - EINT0
-	EINT1_IRQHandler,						// 35, 0x8c - EINT1
-	EINT2_IRQHandler,						// 36, 0x90 - EINT2
-	EINT3_IRQHandler,						// 37, 0x94 - EINT3
-	ADC_IRQHandler,							// 38, 0x98 - ADC
-	BOD_IRQHandler,							// 39, 0x9c - BOD
-	USB_IRQHandler,							// 40, 0xA0 - USB
-	CAN_IRQHandler,							// 41, 0xa4 - CAN
-	DMA_IRQHandler,							// 42, 0xa8 - GP DMA
-	I2S_IRQHandler,							// 43, 0xac - I2S
-	ENET_IRQHandler,						// 44, 0xb0 - Ethernet
-	RIT_IRQHandler,							// 45, 0xb4 - RITINT
-	MCPWM_IRQHandler,						// 46, 0xb8 - Motor Control PWM
-	QEI_IRQHandler,							// 47, 0xbc - Quadrature Encoder
-	PLL1_IRQHandler,						// 48, 0xc0 - PLL1 (USB PLL)
-	USBActivity_IRQHandler,					// 49, 0xc4 - USB Activity interrupt to wakeup
-	CANActivity_IRQHandler, 				// 50, 0xc8 - CAN Activity interrupt to wakeup
-};
+        // Chip Level - LPC17
+        WDT_IRQHandler, // 16, 0x40 - WDT
+        TIMER0_IRQHandler, // 17, 0x44 - TIMER0
+        TIMER1_IRQHandler, // 18, 0x48 - TIMER1
+        TIMER2_IRQHandler, // 19, 0x4c - TIMER2
+        TIMER3_IRQHandler, // 20, 0x50 - TIMER3
+        UART0_IRQHandler, // 21, 0x54 - UART0
+        UART1_IRQHandler, // 22, 0x58 - UART1
+        UART2_IRQHandler, // 23, 0x5c - UART2
+        UART3_IRQHandler, // 24, 0x60 - UART3
+        PWM1_IRQHandler, // 25, 0x64 - PWM1
+        I2C0_IRQHandler, // 26, 0x68 - I2C0
+        I2C1_IRQHandler, // 27, 0x6c - I2C1
+        I2C2_IRQHandler, // 28, 0x70 - I2C2
+        SPI_IRQHandler, // 29, 0x74 - SPI
+        SSP0_IRQHandler, // 30, 0x78 - SSP0
+        SSP1_IRQHandler, // 31, 0x7c - SSP1
+        PLL0_IRQHandler, // 32, 0x80 - PLL0 (Main PLL)
+        RTC_IRQHandler, // 33, 0x84 - RTC
+        EINT0_IRQHandler, // 34, 0x88 - EINT0
+        EINT1_IRQHandler, // 35, 0x8c - EINT1
+        EINT2_IRQHandler, // 36, 0x90 - EINT2
+        EINT3_IRQHandler, // 37, 0x94 - EINT3
+        ADC_IRQHandler, // 38, 0x98 - ADC
+        BOD_IRQHandler, // 39, 0x9c - BOD
+        USB_IRQHandler, // 40, 0xA0 - USB
+        CAN_IRQHandler, // 41, 0xa4 - CAN
+        DMA_IRQHandler, // 42, 0xa8 - GP DMA
+        I2S_IRQHandler, // 43, 0xac - I2S
+        ENET_IRQHandler, // 44, 0xb0 - Ethernet
+        RIT_IRQHandler, // 45, 0xb4 - RITINT
+        MCPWM_IRQHandler, // 46, 0xb8 - Motor Control PWM
+        QEI_IRQHandler, // 47, 0xbc - Quadrature Encoder
+        PLL1_IRQHandler, // 48, 0xc0 - PLL1 (USB PLL)
+        USBActivity_IRQHandler, // 49, 0xc4 - USB Activity interrupt to wakeup
+        CANActivity_IRQHandler, // 50, 0xc8 - CAN Activity interrupt to wakeup
+        };
 
 //*****************************************************************************
 // Functions to carry out the initialization of RW and BSS data sections. These
@@ -213,20 +216,22 @@ void (* const g_pfnVectors[])(void) = {
 // memory.
 //*****************************************************************************
 __attribute__ ((section(".after_vectors")))
-void data_init(unsigned int romstart, unsigned int start, unsigned int len) {
-	unsigned int *pulDest = (unsigned int*) start;
-	unsigned int *pulSrc = (unsigned int*) romstart;
-	unsigned int loop;
-	for (loop = 0; loop < len; loop = loop + 4)
-		*pulDest++ = *pulSrc++;
+void data_init(unsigned int romstart, unsigned int start, unsigned int len)
+{
+    unsigned int *pulDest = (unsigned int*) start;
+    unsigned int *pulSrc = (unsigned int*) romstart;
+    unsigned int loop;
+    for(loop = 0;loop < len;loop = loop + 4)
+        *pulDest++ = *pulSrc++;
 }
 
 __attribute__ ((section(".after_vectors")))
-void bss_init(unsigned int start, unsigned int len) {
-	unsigned int *pulDest = (unsigned int*) start;
-	unsigned int loop;
-	for (loop = 0; loop < len; loop = loop + 4)
-		*pulDest++ = 0;
+void bss_init(unsigned int start, unsigned int len)
+{
+    unsigned int *pulDest = (unsigned int*) start;
+    unsigned int loop;
+    for(loop = 0;loop < len;loop = loop + 4)
+        *pulDest++ = 0;
 }
 
 #ifndef USE_OLD_STYLE_DATA_BSS_INIT
@@ -260,82 +265,84 @@ extern unsigned int _bss;
 extern unsigned int _ebss;
 #endif
 
-
 //*****************************************************************************
 // Reset entry point for your code.
 // Sets up a simple runtime environment and initializes the C/C++
 // library.
 //*****************************************************************************
 __attribute__ ((section(".after_vectors")))
-void
-ResetISR(void) {
+void ResetISR(void)
+{
 
 #ifndef USE_OLD_STYLE_DATA_BSS_INIT
     //
     // Copy the data sections from flash to SRAM.
     //
-	unsigned int LoadAddr, ExeAddr, SectionLen;
-	unsigned int *SectionTableAddr;
+    unsigned int LoadAddr, ExeAddr, SectionLen;
+    unsigned int *SectionTableAddr;
 
-	// Load base address of Global Section Table
-	SectionTableAddr = &__data_section_table;
+    // Load base address of Global Section Table
+    SectionTableAddr = &__data_section_table;
 
     // Copy the data sections from flash to SRAM.
-	while (SectionTableAddr < &__data_section_table_end) {
-		LoadAddr = *SectionTableAddr++;
-		ExeAddr = *SectionTableAddr++;
-		SectionLen = *SectionTableAddr++;
-		data_init(LoadAddr, ExeAddr, SectionLen);
-	}
-	// At this point, SectionTableAddr = &__bss_section_table;
-	// Zero fill the bss segment
-	while (SectionTableAddr < &__bss_section_table_end) {
-		ExeAddr = *SectionTableAddr++;
-		SectionLen = *SectionTableAddr++;
-		bss_init(ExeAddr, SectionLen);
-	}
+    while(SectionTableAddr < &__data_section_table_end)
+    {
+        LoadAddr = *SectionTableAddr++;
+        ExeAddr = *SectionTableAddr++;
+        SectionLen = *SectionTableAddr++;
+        data_init(LoadAddr, ExeAddr, SectionLen);
+    }
+    // At this point, SectionTableAddr = &__bss_section_table;
+    // Zero fill the bss segment
+    while(SectionTableAddr < &__bss_section_table_end)
+    {
+        ExeAddr = *SectionTableAddr++;
+        SectionLen = *SectionTableAddr++;
+        bss_init(ExeAddr, SectionLen);
+    }
 #else
-	// Use Old Style Data and BSS section initialization.
-	// This will only initialize a single RAM bank.
-	unsigned int * LoadAddr, *ExeAddr, *EndAddr, SectionLen;
+    // Use Old Style Data and BSS section initialization.
+    // This will only initialize a single RAM bank.
+    unsigned int * LoadAddr, *ExeAddr, *EndAddr, SectionLen;
 
     // Copy the data segment from flash to SRAM.
-	LoadAddr = &_etext;
-	ExeAddr = &_data;
-	EndAddr = &_edata;
-	SectionLen = (void*)EndAddr - (void*)ExeAddr;
-	data_init((unsigned int)LoadAddr, (unsigned int)ExeAddr, SectionLen);
-	// Zero fill the bss segment
-	ExeAddr = &_bss;
-	EndAddr = &_ebss;
-	SectionLen = (void*)EndAddr - (void*)ExeAddr;
-	bss_init ((unsigned int)ExeAddr, SectionLen);
+    LoadAddr = &_etext;
+    ExeAddr = &_data;
+    EndAddr = &_edata;
+    SectionLen = (void*)EndAddr - (void*)ExeAddr;
+    data_init((unsigned int)LoadAddr, (unsigned int)ExeAddr, SectionLen);
+    // Zero fill the bss segment
+    ExeAddr = &_bss;
+    EndAddr = &_ebss;
+    SectionLen = (void*)EndAddr - (void*)ExeAddr;
+    bss_init ((unsigned int)ExeAddr, SectionLen);
 #endif
 
 #ifdef __USE_CMSIS
-	SystemInit();
+    SystemInit();
 #endif
 
 #if defined (__cplusplus)
-	//
-	// Call C++ library initialisation
-	//
-	__libc_init_array();
+    //
+    // Call C++ library initialisation
+    //
+    __libc_init_array();
 #endif
 
 #if defined (__REDLIB__)
-	// Call the Redlib library, which in turn calls main()
-	__main() ;
+    // Call the Redlib library, which in turn calls main()
+    __main();
 #else
-	main();
+    main();
 #endif
 
-	//
-	// main() shouldn't return, but if it does, we'll just enter an infinite loop
-	//
-	while (1) {
-		;
-	}
+    //
+    // main() shouldn't return, but if it does, we'll just enter an infinite loop
+    //
+    while(1)
+    {
+        ;
+    }
 }
 
 //*****************************************************************************

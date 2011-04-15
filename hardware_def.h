@@ -13,11 +13,17 @@ void set_gpio_od(int id, int od);
 void set_gpio_dir(int id, int state);
 void set_gpio_pin(int id, int state);
 void clr_gpio_pin(int id);
-int  get_gpio_pin(int id);
+int get_gpio_pin(int id);
 void GpioInit(void);
 
-enum {GPIO_INPUT = 0, GPIO_OUTPUT = 1};
-enum {GPIO_ON, GPIO_OFF, GPIO_TOGGLE};
+enum
+{
+    GPIO_INPUT = 0, GPIO_OUTPUT = 1
+};
+enum
+{
+    GPIO_ON, GPIO_OFF, GPIO_TOGGLE
+};
 
 // I2C
 #define I2C_SEN_DATA      0
@@ -47,9 +53,7 @@ enum {GPIO_ON, GPIO_OFF, GPIO_TOGGLE};
 // Current/Voltage Sensors
 enum
 {
-	ADC_BAT      = 0,
-	ADC_I_VCC    = 1,
-	ADC_I_BUS    = 2
+    ADC_BAT = 0, ADC_I_VCC = 1, ADC_I_BUS = 2
 };
 #define VSENSE_BAT       23
 #define ISENSE_VCC       24
@@ -58,16 +62,12 @@ enum
 // Encoders
 enum
 {
-	ENC_BS = 3,
-	ENC_BF = 2,
-	ENC_FS = 0,
-	ENC_FF = 1
+    ENC_BS = 3, ENC_BF = 2, ENC_FS = 0, ENC_FF = 1
 };
 
 enum
 {
-	ADC_IR_BACK  = 4,
-	ADC_IR_FRONT = 5
+    ADC_IR_BACK = 4, ADC_IR_FRONT = 5
 };
 #define VSENSE_IR_BACK  130
 #define ENC_BACK_SIDE   210

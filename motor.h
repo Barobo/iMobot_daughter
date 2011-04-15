@@ -4,9 +4,9 @@
 enum
 {
     MOTOR_FRONT_FRONT = 2,
-    MOTOR_FRONT_SIDE  = 3,
-    MOTOR_BACK_FRONT  = 0,
-    MOTOR_BACK_SIDE   = 1
+    MOTOR_FRONT_SIDE = 3,
+    MOTOR_BACK_FRONT = 0,
+    MOTOR_BACK_SIDE = 1
 };
 
 #define PWM_CYCLE		1200
@@ -70,6 +70,5 @@ extern uint32_t MotorInit();
 extern void set_motor(uint32_t ChannelNum, int cycle);
 extern void MotorStart();
 extern void MotorStop();
-
 
 #endif /* MOTOR_H_ */

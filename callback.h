@@ -9,8 +9,7 @@ typedef void (*SchedulerCallback)(void);
 
 enum
 {
-    DISABLED = 0,
-    ENABLED = 1
+    DISABLED = 0, ENABLED = 1
 };
 
 typedef struct
@@ -24,10 +23,10 @@ typedef struct
 
 // Prototypes
 int32_t CallbackRegister(SchedulerCallback callbackFunction, uint32_t run_time);
-void    CallbackService(uint32_t current_time);
+void CallbackService(uint32_t current_time);
 int32_t CallbackEnable(SchedulerCallback func);
 int32_t CallbackDisable(SchedulerCallback func);
-void    set_callback_divisor(uint32_t interval);
+void set_callback_divisor(uint32_t interval);
 
 extern volatile uint32_t callback_divisor;
 

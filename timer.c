@@ -67,8 +67,8 @@ uint32_t TimerInit(uint8_t timer_num, uint32_t interval)
 {
     if(timer_num == 0)
     {
-    	// Interval is in 1us.
-    	// The main clock is 100Mhz, so each clock cycle is 10ns.
+        // Interval is in 1us.
+        // The main clock is 100Mhz, so each clock cycle is 10ns.
         LPC_TIM0->MR0 = (MAIN_CLOCK / BASE_TIMER_DIVISOR) * interval;
         LPC_TIM0->MCR = 3; // Interrupt and Reset on MR0
 

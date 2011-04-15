@@ -5,7 +5,7 @@
  * '__CR_SEMIHOST' symbol picked up by Code Red tools when image loaded to enable
  * semihosting support (when auto option is selected).
  */
-extern void __CR_SEMIHOST () __attribute__ ((weak, alias ("consoleprint")));
+extern void __CR_SEMIHOST() __attribute__ ((weak, alias ("consoleprint")));
 
 /*
  * Prototype for Code Red Redlib semihosting stub function that carries out
@@ -14,7 +14,7 @@ extern void __CR_SEMIHOST () __attribute__ ((weak, alias ("consoleprint")));
  * change in future versions of the tools.
  */
 #define LIBSTUB_SYS_WRITE __write
-int LIBSTUB_SYS_WRITE (int, char *, int);
+int LIBSTUB_SYS_WRITE(int, char *, int);
 
 /*
  * consoleprint() -  provides a "print string to console" function that uses
@@ -32,10 +32,10 @@ int LIBSTUB_SYS_WRITE (int, char *, int);
  */
 int consoleprint(char *cpstring)
 {
-	 int slen, res;
-	 // Calculate length of string
-	 slen = strlen (cpstring);
-	 // Call function to carry out semihosting "SYS_WRITE" operation
-	 res = LIBSTUB_SYS_WRITE (0, cpstring,slen);	// Note that '0' represents stdout
-	 return res;
+    int slen, res;
+    // Calculate length of string
+    slen = strlen(cpstring);
+    // Call function to carry out semihosting "SYS_WRITE" operation
+    res = LIBSTUB_SYS_WRITE(0, cpstring, slen); // Note that '0' represents stdout
+    return res;
 }
