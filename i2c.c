@@ -100,6 +100,7 @@ uint32_t I2cStart(uint8_t module)
     return (retVal);
 }
 
+// TODO
 uint32_t I2cStop(uint8_t module)
 {
     LPC_I2C1->I2CONSET = I2CONSET_STO; /* Set Stop flag */

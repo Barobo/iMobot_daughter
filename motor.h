@@ -1,13 +1,7 @@
 #ifndef MOTOR_H_
 #define MOTOR_H_
 
-enum
-{
-    MOTOR_FRONT_FRONT = 2,
-    MOTOR_FRONT_SIDE = 3,
-    MOTOR_BACK_FRONT = 0,
-    MOTOR_BACK_SIDE = 1
-};
+#define MOTOR_MAX_SPEED 80
 
 #define PWM_CYCLE		1200
 #define PWM_OFFSET		200
@@ -66,9 +60,25 @@ enum
 #define LER5_EN			1 << 5
 #define LER6_EN			1 << 6
 
+typedef struct
+{
+    uint8_t state;
+    uint8_t desired_position;
+}motor_t;
+
+extern motor_t motor[4];
+// states
+enum
+{
+    MOTOR_IDLE = 0,
+    MOTOR_MOVING = 1,
+};
+
 extern uint32_t MotorInit();
-extern void set_motor(uint32_t ChannelNum, int cycle);
+extern void set_motor_speed(uint32_t channel, int cycle);
+void set_motor_position(uint32_t channel, uint32_t position, int8_t direction_speed);
 extern void MotorStart();
 extern void MotorStop();
+extern void MotorHandler(void);
 
 #endif /* MOTOR_H_ */

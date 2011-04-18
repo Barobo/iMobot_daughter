@@ -34,6 +34,14 @@ enum
 #define I2C_MOD_CLK      28
 
 // Motors
+enum
+{
+    MOTOR_FRONT_FRONT = 2,
+    MOTOR_FRONT_SIDE = 3,
+    MOTOR_BACK_FRONT = 0,
+    MOTOR_BACK_SIDE = 1
+};
+
 #define M12_STBY        208
 #define M1_PWM          203
 #define M1_DIR1         209

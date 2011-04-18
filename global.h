@@ -13,4 +13,6 @@
 #include "stdint.h"
 #include "hardware_def.h"
 
+#define ABS(a)     (((a) < 0) ? -(a) : (a))
+
 #endif //GLOBAL_H

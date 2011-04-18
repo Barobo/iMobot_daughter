@@ -1,5 +1,9 @@
 #include "global.h"
 #include "motor.h"
+#include "encoder.h"
+#include "consoleprint.h"
+
+motor_t motor[4];
 
 uint32_t MotorInit()
 {
@@ -53,9 +57,10 @@ uint32_t MotorInit()
 }
 
 #define MOTOR_SCALE 100
-void set_motor(uint32_t ChannelNum, int cycle)
+void set_motor_speed(uint32_t channel, int cycle)
 {
-    switch(ChannelNum)
+
+    switch(channel)
     {
         case 0:
             if(cycle > 0)
@@ -118,6 +123,33 @@ void set_motor(uint32_t ChannelNum, int cycle)
     LPC_PWM1->LER = LER3_EN | LER4_EN | LER5_EN | LER6_EN;
 }
 
+void set_motor_position(uint32_t channel, uint32_t position, int8_t direction_speed)
+{
+    int32_t enc_bf = EncoderRead(ENC_FRONT_FRONT);
+    int32_t enc_bs = EncoderRead(ENC_FRONT_SIDE);
+    int32_t enc_ff = EncoderRead(ENC_BACK_FRONT);
+    int32_t enc_fs = EncoderRead(ENC_BACK_SIDE);
+
+    position -= (position > 100) ? 100: 0;
+    motor[channel].desired_position = position;
+    motor[channel].state = MOTOR_MOVING;
+    switch(channel)
+    {
+        case MOTOR_FRONT_FRONT:
+            set_motor_speed(MOTOR_FRONT_FRONT, direction_speed);
+            break;
+        case MOTOR_FRONT_SIDE:
+            set_motor_speed(MOTOR_FRONT_SIDE, direction_speed);
+            break;
+        case MOTOR_BACK_FRONT:
+            set_motor_speed(MOTOR_BACK_FRONT, direction_speed);
+            break;
+        case MOTOR_BACK_SIDE:
+            set_motor_speed(MOTOR_BACK_SIDE, direction_speed);
+            break;
+    }
+}
+
 void MotorStart()
 {
     /* All single edge, all enable */
@@ -129,4 +161,34 @@ void MotorStop()
 {
     LPC_PWM1->PCR = 0;
     LPC_PWM1->TCR = 0x00; /* Stop all PWMs */
+}
+
+void MotorHandler(void)
+{
+    int32_t enc_bf = EncoderRead(ENC_FRONT_SIDE);
+    int32_t enc_bs = EncoderRead(ENC_FRONT_FRONT);
+    int32_t enc_ff = EncoderRead(ENC_BACK_FRONT);
+    int32_t enc_fs = EncoderRead(ENC_BACK_SIDE);
+
+    if (ABS(enc_ff - motor[MOTOR_FRONT_FRONT].desired_position) < 5)
+    {
+        set_motor_speed(MOTOR_FRONT_FRONT,0);
+        motor[MOTOR_FRONT_FRONT].state = MOTOR_IDLE;
+    }
+    if (ABS(enc_fs - motor[MOTOR_FRONT_SIDE].desired_position) < 5)
+    {
+        set_motor_speed(MOTOR_FRONT_SIDE,0);
+        motor[MOTOR_FRONT_SIDE].state = MOTOR_IDLE;
+    }
+    if (ABS(enc_bf - motor[MOTOR_BACK_FRONT].desired_position) < 5)
+    {
+        set_motor_speed(MOTOR_BACK_FRONT,0);
+        motor[MOTOR_BACK_FRONT].state = MOTOR_IDLE;
+    }
+    if (ABS(enc_bs - motor[MOTOR_BACK_SIDE].desired_position) < 5)
+    {
+        set_motor_speed(MOTOR_BACK_SIDE,0);
+        motor[MOTOR_BACK_SIDE].state = MOTOR_IDLE;
+    }
+
 }
