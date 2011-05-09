@@ -151,7 +151,7 @@ uint32_t I2cSend(uint8_t module, uint32_t address, uint32_t data[],
     I2cEngine(module);
 }
 
-uint32_t I2cRecieve(uint8_t module, uint32_t address, uint32_t size)
+uint32_t I2cReceive(uint8_t module, uint32_t address, uint32_t size)
 {
     uint32_t i = 0;
     i2c_bus[module].write_length = 1; // address

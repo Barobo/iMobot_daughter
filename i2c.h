@@ -81,6 +81,6 @@ extern uint32_t I2cStop(uint8_t module);
 extern uint32_t I2cEngine(uint8_t module);
 extern uint32_t I2cSend(uint8_t module, uint32_t address, uint32_t data[],
         uint32_t size);
-extern uint32_t I2cRecieve(uint8_t module, uint32_t address, uint32_t size);
+extern uint32_t I2cReceive(uint8_t module, uint32_t address, uint32_t size);
 
 #endif
