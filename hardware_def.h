@@ -78,12 +78,16 @@ enum
     ADC_IR_BACK = 4, ADC_IR_FRONT = 5
 };
 #define VSENSE_IR_BACK  130
-#define ENC_BACK_SIDE   210
-#define ENC_BACK_FRONT  211
+#ifdef REWORKED_ENCODER_BOARD
+    #define ENC_FRONT_SIDE   129
+#else
+    #define ENC_FRONT_SIDE   210
+#endif
+#define ENC_FRONT_FRONT  211
 
 #define VSENSE_IR_FRONT 131
-#define ENC_FRONT_SIDE  212
-#define ENC_FRONT_FRONT 213
+#define ENC_BACK_FRONT 212
+#define ENC_BACK_SIDE  213
 
 // Sensor bus enables
 #define SEN_1_EN        123

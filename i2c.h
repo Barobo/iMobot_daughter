@@ -79,8 +79,8 @@ extern void I2cInit(uint8_t module);
 extern uint32_t I2cStart(uint8_t module);
 extern uint32_t I2cStop(uint8_t module);
 extern uint32_t I2cEngine(uint8_t module);
-extern uint32_t I2cSend(uint8_t module, uint32_t address, uint32_t data[],
+extern uint32_t I2cWrite(uint8_t module, uint32_t address, uint32_t data[],
         uint32_t size);
-extern uint32_t I2cRecieve(uint8_t module, uint32_t address, uint32_t size);
+extern uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size);
 
 #endif

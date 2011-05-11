@@ -7,6 +7,9 @@
 
 // compile flags
 #define LPC_X_DEBUG //LPCxpresso debug board
+
+#define REWORKED_ENCODER_BOARD
+
 // these must follow compiler flags
 #include "LPC17xx.h"
 #include "system_LPC17xx.h"
