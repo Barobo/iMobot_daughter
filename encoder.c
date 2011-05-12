@@ -2,6 +2,8 @@
 #include "hardware_def.h"
 #include "encoder.h"
 #include "timer.h"
+#include "consoleprint.h"
+char print_buffer[30];
 
 int32_t EncoderRead(uint32_t channel)
 {
@@ -34,6 +36,16 @@ int32_t EncoderRead(uint32_t channel)
     return (100 * cnt_high / (cnt_high + cnt_low));
     err:
     return (-1);
+}
+
+void PrintAllEncoders(void)
+{
+    snprintf(print_buffer, 30, "%d %d %d %d\n",
+            EncoderRead(ENC_BACK_SIDE),
+            EncoderRead(ENC_BACK_FRONT),
+            EncoderRead(ENC_FRONT_SIDE),
+            EncoderRead(ENC_FRONT_FRONT));
+    consoleprint(print_buffer);
 }
 
 void EncoderInit(void)

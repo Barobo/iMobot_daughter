@@ -4,18 +4,20 @@
 #include "timer.h"
 #include "callback.h"
 #include "consoleprint.h"
+#include "encoder.h"
 #include "motor.h"
 #include "adc.h"
 #include "uart.h"
 #include "i2c.h"
-#include "encoder.h"
 
-#define FS_CENTER 75
-#define FF_CENTER 98
-#define BS_CENTER 94
-#define BF_CENTER 30
 
-char buffer[50];
+#define BS_CENTER 81
+#define BF_CENTER 75
+#define FS_CENTER 77
+#define FF_CENTER 10
+
+uint32_t get_ir_sen(void);
+char buffer[30];
 
 void msleep(uint32_t milliseconds)
 {
@@ -27,7 +29,6 @@ void msleep(uint32_t milliseconds)
 int main(void)
 {
     uint32_t current_time = 0;
-    uint32_t cnt = 0;
     SystemInit();
     GpioInit();
     //AdcInit();
@@ -40,20 +41,16 @@ int main(void)
     MotorInit();
     MotorStart();
 
-    //I2cInit(SENSOR_BUS);
-
-    // delay 6 sec
+    I2cInit(SENSOR_BUS);
     current_time = now;
-    while(now < current_time + 6000);
-
+    while(now < current_time + 1000);
     // center the wheels if they aren't already
     set_motor_position(MOTOR_FRONT_FRONT, FF_CENTER, 70);
     set_motor_position(MOTOR_BACK_FRONT,  BF_CENTER, 72);
     while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
 
-    // 1 sec delay
     current_time = now;
-    while(now < current_time + 1000);
+    while(now < current_time + 5000);
 
     // Move the body joints a little
     set_motor_position(MOTOR_FRONT_SIDE, 255, 0);
@@ -76,79 +73,32 @@ while(1);
     set_motor_position(MOTOR_BACK_FRONT,BF_CENTER + 50, 72);
     while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
     current_time = now;
-    while(now < current_time + 1500);
+    while(now < current_time + 1000);
 
-//    snprintf(buffer, 30, "Roll\n");
-//    consoleprint(buffer);
-    // They see me rollin', they hatin'
-    while (cnt++ < 8)
+    while (1)
     {
-//        snprintf(buffer, 30, "%d\n",cnt);
-//        consoleprint(buffer);
-        set_motor_position(MOTOR_FRONT_FRONT,FF_CENTER + 50, 70);
-        set_motor_position(MOTOR_BACK_FRONT,BF_CENTER, 72);
-        while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
-        current_time = now;
-        while(now < current_time + 10);
-        set_motor_position(MOTOR_FRONT_FRONT,FF_CENTER, 70);
-        set_motor_position(MOTOR_BACK_FRONT,BF_CENTER + 50, 72);
-        while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
-        current_time = now;
-        while(now < current_time + 10);
-    }
-    cnt = 0;
+        if (get_ir_sen())
+        {
+            set_motor_position(MOTOR_FRONT_FRONT, FF_CENTER + 50, -70);
+            set_motor_position(MOTOR_BACK_FRONT,  BF_CENTER, -72);
+            while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
+        }
+        else
+        {
+            set_motor_position(MOTOR_FRONT_FRONT, FF_CENTER, 70);
+            set_motor_position(MOTOR_BACK_FRONT,  BF_CENTER + 50, 72);
+            while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
 
-//    snprintf(buffer, 30, "Roll\n");
-//    consoleprint(buffer);
-    while (cnt++ < 7)
-    {
-//        snprintf(buffer, 30, "%d\n",cnt);
-//        consoleprint(buffer);
-        set_motor_position(MOTOR_BACK_FRONT,BF_CENTER, 72);
-        while (motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
-        current_time = now;
-        while(now < current_time + 10);
-        set_motor_position(MOTOR_BACK_FRONT,BF_CENTER + 50, 72);
-        while (motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
-        current_time = now;
-        while(now < current_time + 10);
+        }
     }
-    cnt = 0;
-    while (cnt++ < 7)
-    {
-//        snprintf(buffer, 30, "%d\n",cnt);
-//        consoleprint(buffer);
-        set_motor_position(MOTOR_FRONT_FRONT,BF_CENTER, -72);
-        while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING);
-        current_time = now;
-        while(now < current_time + 10);
-        set_motor_position(MOTOR_FRONT_FRONT,BF_CENTER + 50, -72);
-        while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING);
-        current_time = now;
-        while(now < current_time + 10);
-    }
-    cnt = 0;
-    while (cnt++ < 8)
-    {
-//        snprintf(buffer, 30, "%d\n",cnt);
-//        consoleprint(buffer);
-        set_motor_position(MOTOR_FRONT_FRONT,FF_CENTER + 50, 70);
-        set_motor_position(MOTOR_BACK_FRONT,BF_CENTER, 72);
-        while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
-        current_time = now;
-        while(now < current_time + 10);
-        set_motor_position(MOTOR_FRONT_FRONT,FF_CENTER, 70);
-        set_motor_position(MOTOR_BACK_FRONT,BF_CENTER + 50, 72);
-        while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
-        current_time = now;
-        while(now < current_time + 10);
-    }
-    cnt = 0;
-    // center the wheels if they aren't already
-    set_motor_position(MOTOR_FRONT_FRONT, FF_CENTER, 70);
-    set_motor_position(MOTOR_BACK_FRONT,  BF_CENTER, 72);
-    while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
-    while(1);
-
     return 0;
 }
+
+uint32_t get_ir_sen(void)
+{
+    uint32_t buf[10];
+    buf[0] = 0;
+    I2cWrite(SENSOR_BUS, 0x90, buf, 2);
+    return I2cRead(SENSOR_BUS, 0x90, 1);
+}
+

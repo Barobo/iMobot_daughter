@@ -1,6 +1,8 @@
 #include "global.h"
 #include "i2c.h"
 
+#include "consoleprint.h"
+
 volatile i2c_bus_t i2c_bus[3];
 
 void I2cInit(uint8_t module)
@@ -15,8 +17,7 @@ void I2cInit(uint8_t module)
             set_gpio_select(I2C_MOD_CLK, 1);
             set_gpio_select(I2C_MOD_DATA, 1);
             // Clear flags
-            LPC_I2C0->I2CONCLR = I2CONCLR_AAC | I2CONCLR_SIC | I2CONCLR_STAC
-                    | I2CONCLR_I2ENC;
+            LPC_I2C0->I2CONCLR = I2CONCLR_AAC | I2CONCLR_SIC | I2CONCLR_STAC | I2CONCLR_I2ENC;
             // Reset registers
             LPC_I2C0->I2SCLL = I2SCLL_SCLL;
             LPC_I2C0->I2SCLH = I2SCLH_SCLH;
@@ -31,8 +32,7 @@ void I2cInit(uint8_t module)
             set_gpio_select(I2C_SEN_CLK, 3);
             set_gpio_select(I2C_SEN_DATA, 3);
             // Clear flags
-            LPC_I2C1->I2CONCLR = I2CONCLR_AAC | I2CONCLR_SIC | I2CONCLR_STAC
-                    | I2CONCLR_I2ENC;
+            LPC_I2C1->I2CONCLR = I2CONCLR_AAC | I2CONCLR_SIC | I2CONCLR_STAC | I2CONCLR_I2ENC;
             // Reset registers
             LPC_I2C1->I2SCLL = I2SCLL_SCLL;
             LPC_I2C1->I2SCLH = I2SCLH_SCLH;
@@ -45,8 +45,7 @@ void I2cInit(uint8_t module)
             set_gpio_select(I2C_EEPROM_CLK, 2);
             set_gpio_select(I2C_EEPROM_DATA, 2);
             // Clear flags
-            LPC_I2C2->I2CONCLR = I2CONCLR_AAC | I2CONCLR_SIC | I2CONCLR_STAC
-                    | I2CONCLR_I2ENC;
+            LPC_I2C2->I2CONCLR = I2CONCLR_AAC | I2CONCLR_SIC | I2CONCLR_STAC | I2CONCLR_I2ENC;
             // Reset registers
             LPC_I2C2->I2SCLL = I2SCLL_SCLL;
             LPC_I2C2->I2SCLH = I2SCLH_SCLH;
@@ -133,10 +132,12 @@ uint32_t I2cEngine(uint8_t module)
     return (TRUE);
 }
 
-uint32_t I2cSend(uint8_t module, uint32_t address, uint32_t data[],
-        uint32_t size)
+uint32_t I2cWrite(uint8_t module, uint32_t address, uint32_t data[], uint32_t size)
 {
     uint32_t i = 0;
+    // size is size + address(1)
+    size++;
+
     i2c_bus[module].write_length = size;
     i2c_bus[module].read_length = 0;
 
@@ -144,16 +145,17 @@ uint32_t I2cSend(uint8_t module, uint32_t address, uint32_t data[],
     i2c_bus[module].master_buffer[0] = address;
     for(i = 1;i < I2C_BUFSIZE;i++)
     {
-        i2c_bus[module].master_buffer[i] = (i < size) ? data[i] : 0;
+        i2c_bus[module].master_buffer[i] = (i < size) ? data[i - 1] : 0;
     }
 
     i2c_bus[module].command = 0;
     I2cEngine(module);
 }
 
-uint32_t I2cReceive(uint8_t module, uint32_t address, uint32_t size)
+uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size)
 {
     uint32_t i = 0;
+    char buffer[30];
     i2c_bus[module].write_length = 1; // address
     i2c_bus[module].read_length = size;
 
@@ -165,6 +167,17 @@ uint32_t I2cReceive(uint8_t module, uint32_t address, uint32_t size)
 
     i2c_bus[module].command = 1;
     I2cEngine(module);
+
+//    snprintf(buffer, 30, "%x %d %d %d %d %d %d %d %d\n", i2c_bus[module].master_buffer[0],
+//                                             i2c_bus[module].master_buffer[1],
+//                                             i2c_bus[module].master_buffer[2],
+//                                             i2c_bus[module].master_buffer[3],
+//                                             i2c_bus[module].master_buffer[4],
+//                                             i2c_bus[module].master_buffer[5],
+//                                             i2c_bus[module].master_buffer[6],
+//                                             i2c_bus[module].master_buffer[7],
+//                                             i2c_bus[module].master_buffer[8]);
+//    consoleprint(buffer);
     return i2c_bus[module].master_buffer[4];
 }
 
@@ -188,9 +201,7 @@ void I2C0_IRQHandler(void) // MODULE
         case MT_DATA_ACK:
             if(i2c_bus[MODULE_BUS].master_state == I2C_STARTED)
             {
-                LPC_I2C0->I2DAT
-                        = i2c_bus[MODULE_BUS].master_buffer[1
-                                + i2c_bus[MODULE_BUS].write_index];
+                LPC_I2C0->I2DAT = i2c_bus[MODULE_BUS].master_buffer[1 + i2c_bus[MODULE_BUS].write_index];
                 i2c_bus[MODULE_BUS].write_index++;
                 i2c_bus[MODULE_BUS].master_state = DATA_ACK;
             }
@@ -202,12 +213,9 @@ void I2C0_IRQHandler(void) // MODULE
                     != i2c_bus[MODULE_BUS].write_length)
             {
                 // this should be the last one
-                LPC_I2C0->I2DAT
-                        = i2c_bus[MODULE_BUS].master_buffer[1
-                                + i2c_bus[MODULE_BUS].write_index];
+                LPC_I2C0->I2DAT = i2c_bus[MODULE_BUS].master_buffer[1 + i2c_bus[MODULE_BUS].write_index];
                 i2c_bus[MODULE_BUS].write_index++;
-                if(i2c_bus[MODULE_BUS].write_index
-                        != i2c_bus[MODULE_BUS].write_length)
+                if(i2c_bus[MODULE_BUS].write_index != i2c_bus[MODULE_BUS].write_length)
                 {
                     i2c_bus[MODULE_BUS].master_state = DATA_ACK;
                 }
@@ -242,11 +250,9 @@ void I2C0_IRQHandler(void) // MODULE
             break;
         case MR_RECIEVE_ACK:
         case MR_RECIEVE_NACK:
-            i2c_bus[MODULE_BUS].master_buffer[3
-                    + i2c_bus[MODULE_BUS].read_length] = LPC_I2C0->I2DAT;
+            i2c_bus[MODULE_BUS].master_buffer[3 + i2c_bus[MODULE_BUS].read_length] = LPC_I2C0->I2DAT;
             i2c_bus[MODULE_BUS].read_index++;
-            if(i2c_bus[MODULE_BUS].read_index
-                    != i2c_bus[MODULE_BUS].read_length)
+            if(i2c_bus[MODULE_BUS].read_index != i2c_bus[MODULE_BUS].read_length)
             {
                 i2c_bus[MODULE_BUS].master_state = DATA_ACK;
             }
@@ -290,9 +296,7 @@ void I2C1_IRQHandler(void) // SENSORS
         case MT_DATA_ACK:
             if(i2c_bus[SENSOR_BUS].master_state == I2C_STARTED)
             {
-                LPC_I2C1->I2DAT
-                        = i2c_bus[SENSOR_BUS].master_buffer[1
-                                + i2c_bus[SENSOR_BUS].write_index];
+                LPC_I2C1->I2DAT = i2c_bus[SENSOR_BUS].master_buffer[1 + i2c_bus[SENSOR_BUS].write_index];
                 i2c_bus[SENSOR_BUS].write_index++;
                 i2c_bus[SENSOR_BUS].master_state = DATA_ACK;
             }
@@ -300,16 +304,12 @@ void I2C1_IRQHandler(void) // SENSORS
             break;
         case MT_TRANSMIT_ACK:
         case MT_TRANSMIT_NACK:
-            if(i2c_bus[SENSOR_BUS].write_index
-                    != i2c_bus[SENSOR_BUS].write_length)
+            if(i2c_bus[SENSOR_BUS].write_index != i2c_bus[SENSOR_BUS].write_length)
             {
                 // this should be the last one
-                LPC_I2C1->I2DAT
-                        = i2c_bus[SENSOR_BUS].master_buffer[1
-                                + i2c_bus[SENSOR_BUS].write_index];
+                LPC_I2C1->I2DAT = i2c_bus[SENSOR_BUS].master_buffer[1 + i2c_bus[SENSOR_BUS].write_index];
                 i2c_bus[SENSOR_BUS].write_index++;
-                if(i2c_bus[SENSOR_BUS].write_index
-                        != i2c_bus[SENSOR_BUS].write_length)
+                if(i2c_bus[SENSOR_BUS].write_index != i2c_bus[SENSOR_BUS].write_length)
                 {
                     i2c_bus[SENSOR_BUS].master_state = DATA_ACK;
                 }
@@ -344,11 +344,9 @@ void I2C1_IRQHandler(void) // SENSORS
             break;
         case MR_RECIEVE_ACK:
         case MR_RECIEVE_NACK:
-            i2c_bus[SENSOR_BUS].master_buffer[3
-                    + i2c_bus[SENSOR_BUS].read_length] = LPC_I2C1->I2DAT;
+            i2c_bus[SENSOR_BUS].master_buffer[3 + i2c_bus[SENSOR_BUS].read_length] = LPC_I2C1->I2DAT;
             i2c_bus[SENSOR_BUS].read_index++;
-            if(i2c_bus[SENSOR_BUS].read_index
-                    != i2c_bus[SENSOR_BUS].read_length)
+            if(i2c_bus[SENSOR_BUS].read_index != i2c_bus[SENSOR_BUS].read_length)
             {
                 i2c_bus[SENSOR_BUS].master_state = DATA_ACK;
             }
@@ -372,7 +370,7 @@ void I2C1_IRQHandler(void) // SENSORS
     }
 }
 
-void I2C2_IRQHandler(void) // SENSORS
+void I2C2_IRQHandler(void) // EEPROM
 {
     switch(LPC_I2C2->I2STAT)
     {
@@ -392,9 +390,7 @@ void I2C2_IRQHandler(void) // SENSORS
         case MT_DATA_ACK:
             if(i2c_bus[EEPROM_BUS].master_state == I2C_STARTED)
             {
-                LPC_I2C2->I2DAT
-                        = i2c_bus[EEPROM_BUS].master_buffer[1
-                                + i2c_bus[EEPROM_BUS].write_index];
+                LPC_I2C2->I2DAT = i2c_bus[EEPROM_BUS].master_buffer[1 + i2c_bus[EEPROM_BUS].write_index];
                 i2c_bus[EEPROM_BUS].write_index++;
                 i2c_bus[EEPROM_BUS].master_state = DATA_ACK;
             }
@@ -406,12 +402,9 @@ void I2C2_IRQHandler(void) // SENSORS
                     != i2c_bus[EEPROM_BUS].write_length)
             {
                 // this should be the last one
-                LPC_I2C2->I2DAT
-                        = i2c_bus[EEPROM_BUS].master_buffer[1
-                                + i2c_bus[EEPROM_BUS].write_index];
+                LPC_I2C2->I2DAT = i2c_bus[EEPROM_BUS].master_buffer[1 + i2c_bus[EEPROM_BUS].write_index];
                 i2c_bus[EEPROM_BUS].write_index++;
-                if(i2c_bus[EEPROM_BUS].write_index
-                        != i2c_bus[EEPROM_BUS].write_length)
+                if(i2c_bus[EEPROM_BUS].write_index != i2c_bus[EEPROM_BUS].write_length)
                 {
                     i2c_bus[EEPROM_BUS].master_state = DATA_ACK;
                 }
@@ -446,11 +439,9 @@ void I2C2_IRQHandler(void) // SENSORS
             break;
         case MR_RECIEVE_ACK:
         case MR_RECIEVE_NACK:
-            i2c_bus[EEPROM_BUS].master_buffer[3
-                    + i2c_bus[EEPROM_BUS].read_length] = LPC_I2C2->I2DAT;
+            i2c_bus[EEPROM_BUS].master_buffer[3 + i2c_bus[EEPROM_BUS].read_length] = LPC_I2C2->I2DAT;
             i2c_bus[EEPROM_BUS].read_index++;
-            if(i2c_bus[EEPROM_BUS].read_index
-                    != i2c_bus[EEPROM_BUS].read_length)
+            if(i2c_bus[EEPROM_BUS].read_index != i2c_bus[EEPROM_BUS].read_length)
             {
                 i2c_bus[EEPROM_BUS].master_state = DATA_ACK;
             }
