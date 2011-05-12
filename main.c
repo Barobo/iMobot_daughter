@@ -17,6 +17,13 @@
 
 char buffer[50];
 
+void msleep(uint32_t milliseconds)
+{
+	uint32_t current_time;
+	current_time = now;
+	while(now < (current_time + milliseconds));
+}
+
 int main(void)
 {
     uint32_t current_time = 0;
@@ -47,6 +54,23 @@ int main(void)
     // 1 sec delay
     current_time = now;
     while(now < current_time + 1000);
+
+    // Move the body joints a little
+    set_motor_position(MOTOR_FRONT_SIDE, 255, 0);
+    set_motor_position(MOTOR_BACK_SIDE, 255, 0);
+    /*
+    set_motor_speed(MOTOR_FRONT_SIDE, 30);
+    msleep(500);
+    set_motor_speed(MOTOR_FRONT_SIDE, 0);
+    msleep(1000);
+while(1);
+*/
+    set_motor_speed(MOTOR_BACK_SIDE, -30);
+    msleep(500);
+    set_motor_speed(MOTOR_BACK_SIDE, 0);
+    msleep(2000);
+
+    while(1);
 
     // ofset one side 50% before we start rolling
     set_motor_position(MOTOR_BACK_FRONT,BF_CENTER + 50, 72);
