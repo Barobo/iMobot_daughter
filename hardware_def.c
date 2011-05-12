@@ -201,6 +201,18 @@ void GpioInit(void)
     set_gpio_select(GREEN_LED, 0);
     set_gpio_dir(GREEN_LED, GPIO_OUTPUT);
 
+    set_gpio_dir(SEN_1_EN,GPIO_OUTPUT);
+    set_gpio_dir(SEN_2_EN,GPIO_OUTPUT);
+    set_gpio_dir(SEN_3_EN,GPIO_OUTPUT);
+    set_gpio_dir(SEN_4_EN,GPIO_OUTPUT);
+    set_gpio_dir(SEN_5_EN,GPIO_OUTPUT);
+    set_gpio_dir(SEN_6_EN,GPIO_OUTPUT);
+    set_gpio_pin(SEN_1_EN,GPIO_ON);
+    set_gpio_pin(SEN_2_EN,GPIO_ON);
+    set_gpio_pin(SEN_3_EN,GPIO_ON);
+    set_gpio_pin(SEN_4_EN,GPIO_ON);
+    set_gpio_pin(SEN_5_EN,GPIO_ON);
+    set_gpio_pin(SEN_6_EN,GPIO_ON);
     // Init Timer
 
 }
