@@ -63,7 +63,7 @@
 typedef struct
 {
     uint8_t state;
-    uint8_t desired_position;
+    uint16_t desired_position;
 }motor_t;
 
 extern motor_t motor[4];
@@ -76,7 +76,9 @@ enum
 
 extern uint32_t MotorInit();
 extern void set_motor_speed(uint32_t channel, int cycle);
-void set_motor_position(uint32_t channel, uint32_t position, int8_t direction_speed);
+void set_motor_position(uint32_t channel, int32_t position, int8_t direction_speed);
+void set_motor_position_abs(uint32_t channel, int32_t position, int8_t speed);
+void wait_motor(uint32_t channel);
 extern void MotorStart();
 extern void MotorStop();
 extern void MotorHandler(void);

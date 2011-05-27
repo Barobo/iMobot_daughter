@@ -9,12 +9,9 @@
 #include "adc.h"
 #include "uart.h"
 #include "i2c.h"
+#include "motions.h"
 
-
-#define BS_CENTER 81
-#define BF_CENTER 75
-#define FS_CENTER 77
-#define FF_CENTER 10
+#define DEMO3
 
 uint32_t get_ir_sen(void);
 char buffer[30];
@@ -26,8 +23,12 @@ void msleep(uint32_t milliseconds)
 	while(now < (current_time + milliseconds));
 }
 
+
 int main(void)
 {
+	int i;
+	int32_t enc;
+	int32_t enc1, enc2;
     uint32_t current_time = 0;
     SystemInit();
     GpioInit();
@@ -44,6 +45,143 @@ int main(void)
     I2cInit(SENSOR_BUS);
     current_time = now;
     while(now < current_time + 1000);
+
+    // Move the body joints a little
+    home();
+    msleep(3000);
+    set_motor_position(MOTOR_BACK_SIDE, -40, -40);
+    while(1);
+#if 0
+    set_motor_position(MOTOR_BACK_SIDE, -40, 0);
+    set_motor_speed(MOTOR_BACK_SIDE, -30);
+    msleep(2000);
+    set_motor_speed(MOTOR_BACK_SIDE, 0);
+    while(1);
+#endif
+#ifdef DEMO1
+    for(i = 0; i < 4; i++) {
+    	inch_right();
+    }
+    for(i = 0; i < 2; i++) {
+    	rotate_left();
+    }
+    for(i = 0; i < 4; i++) {
+    	inch_right();
+    }
+#endif
+#ifdef DEMO2
+    /* Twist one end by 45 degrees */
+    set_motor_position(MOTOR_FRONT_FRONT, 180, 100);
+    wait_motor(MOTOR_FRONT_FRONT);
+    msleep(5000);
+    roll_forward();
+    roll_forward();
+    roll_forward();
+    arch();
+    roll_forward();
+    roll_forward();
+    roll_forward();
+    //set_motor_position_abs(MOTOR_FRONT_SIDE, 0, 80);
+    //set_motor_position_abs(MOTOR_BACK_SIDE, 0, 80);
+    for(i = 0; i < 3; i++) {
+    	roll_forward();
+    }
+
+#endif
+
+#ifdef DEMO2A
+    /* Twist one end by 45 degrees */
+    set_motor_position(MOTOR_FRONT_FRONT, 180, 100);
+    arch();
+    wait_motor(MOTOR_FRONT_FRONT);
+    msleep(5000);
+    //set_motor_position_abs(MOTOR_FRONT_SIDE, 0, 80);
+    //set_motor_position_abs(MOTOR_BACK_SIDE, 0, 80);
+    for(i = 0; i < 8; i++) {
+    	roll_forward();
+    }
+
+#endif
+
+#ifdef DEMO3
+
+    for(i = 0; i < 3; i++) {
+    	inch_right();
+    }
+
+    /* Rotate head up 45 deg. */
+    set_motor_position_abs(MOTOR_FRONT_SIDE, -45, 80);
+    msleep(250);
+    /* Rotate back "wheel" 180 degrees */
+    enc = EncoderRead(ENC_BACK_FRONT);
+    for(i = 0; i < 4; i++) {
+    	enc += 180;
+    	set_motor_position(MOTOR_BACK_FRONT, enc, 80);
+    	wait_motor(MOTOR_BACK_FRONT);
+    }
+    msleep(1000);
+    for(i = 0; i < 4; i++) {
+    	enc -= 180;
+    	set_motor_position(MOTOR_BACK_FRONT, enc, -80);
+    	wait_motor(MOTOR_BACK_FRONT);
+    }
+    flat();
+    stand();
+    msleep(250);
+    for(i = 0; i < 2; i++) {
+    	enc = 0;
+    	set_motor_position(MOTOR_BACK_FRONT, enc, 40);
+    	wait_motor(MOTOR_BACK_FRONT);
+    	enc += 180;
+    }
+    for(i = 0; i < 4; i++) {
+    	enc = 0;
+        set_motor_position(MOTOR_BACK_FRONT, enc, -40);
+        wait_motor(MOTOR_BACK_FRONT);
+        enc -= 180;
+    }
+    for(i = 0; i < 4; i++) {
+    	enc = 0;
+    	set_motor_position(MOTOR_FRONT_FRONT, enc, 40);
+    	wait_motor(MOTOR_FRONT_FRONT);
+    	enc += 180;
+    }
+#endif
+
+
+#ifdef DEMO4
+    current_time = now;
+    while(now < current_time + 5000);
+
+    // offset one motor
+    enc1 = 0;
+    enc2 = 180;
+    set_motor_position(MOTOR_FRONT_FRONT, enc1, 70);
+    set_motor_position(MOTOR_BACK_FRONT,enc2, 72);
+    wait_motor(MOTOR_FRONT_FRONT);
+    wait_motor(MOTOR_BACK_FRONT);
+    msleep(1000);
+
+    while (1)
+    {
+    	enc1 += 180;
+    	enc2 += 180;
+    	if (get_ir_sen())
+        {
+    		set_motor_position(MOTOR_FRONT_FRONT, enc1, -70);
+            set_motor_position(MOTOR_BACK_FRONT,  enc2, -72);
+            wait_motor(MOTOR_FRONT_FRONT); wait_motor(MOTOR_BACK_FRONT);
+        }
+        else
+        {
+        	set_motor_position(MOTOR_FRONT_FRONT, enc1, 70);
+            set_motor_position(MOTOR_BACK_FRONT,  enc2, 72);
+            wait_motor(MOTOR_FRONT_FRONT); wait_motor(MOTOR_BACK_FRONT);
+        }
+    }
+#endif
+
+    while(1);
     // center the wheels if they aren't already
     set_motor_position(MOTOR_FRONT_FRONT, FF_CENTER, 70);
     set_motor_position(MOTOR_BACK_FRONT,  BF_CENTER, 72);
@@ -52,22 +190,8 @@ int main(void)
     current_time = now;
     while(now < current_time + 5000);
 
-    // Move the body joints a little
-    set_motor_position(MOTOR_FRONT_SIDE, 255, 0);
-    set_motor_position(MOTOR_BACK_SIDE, 255, 0);
-    /*
-    set_motor_speed(MOTOR_FRONT_SIDE, 30);
-    msleep(500);
-    set_motor_speed(MOTOR_FRONT_SIDE, 0);
-    msleep(1000);
-while(1);
-*/
-    set_motor_speed(MOTOR_BACK_SIDE, -30);
-    msleep(500);
-    set_motor_speed(MOTOR_BACK_SIDE, 0);
-    msleep(2000);
 
-    while(1);
+
 
     // ofset one side 50% before we start rolling
     set_motor_position(MOTOR_BACK_FRONT,BF_CENTER + 50, 72);

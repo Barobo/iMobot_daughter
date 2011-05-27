@@ -10,6 +10,7 @@ int32_t EncoderRead(uint32_t channel)
     uint32_t cnt_high = 0;
     uint32_t cnt_low = 0;
     uint32_t timeout = 0;
+    int32_t enc;
     // wait for the pin to go low
     while(get_gpio_pin(channel))
     {
@@ -33,7 +34,31 @@ int32_t EncoderRead(uint32_t channel)
     {
         cnt_low++; // count
     }
-    return (100 * cnt_high / (cnt_high + cnt_low));
+    enc = (360 * cnt_high / (cnt_high + cnt_low));
+    switch(channel) {
+    case ENC_BACK_SIDE:
+    	enc -= BS_CENTER;
+    	break;
+    case ENC_BACK_FRONT:
+    	enc -= BF_CENTER;
+    	enc = enc * -1;
+    	break;
+    case ENC_FRONT_SIDE:
+    	enc -= FS_CENTER;
+    	break;
+    case ENC_FRONT_FRONT:
+    	enc -= FF_CENTER;
+    	enc = enc * -1;
+    	break;
+    default:
+    	goto err;
+    }
+    /* Make sure enc is a positive value in the range 0-360 */
+    while(enc < 0) {
+    	enc += 360;
+    }
+    enc = enc % 360;
+    return enc;
     err:
     return (-1);
 }
