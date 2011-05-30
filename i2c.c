@@ -15,21 +15,30 @@ void I2cInit(uint8_t module)
     switch(module)
     {
         case MODULE_BUS: // I2C0 - Module bus - I am slave
-            set_gpio_select(I2C_MOD_CLK, 1);
-            set_gpio_select(I2C_MOD_DATA, 1);
-            set_gpio_pull(I2C_MOD_CLK, 1);
-            set_gpio_pull(I2C_MOD_DATA, 1);
-            set_gpio_od(I2C_MOD_CLK, 1);
-            set_gpio_od(I2C_MOD_DATA, 1);
+            LPC_SC->PCONP |= 1<<PCI2C0;
+            LPC_PINCON->PINSEL1 &= ~(0x3<<22);
+            LPC_PINCON->PINSEL1 |=  (0x1<<22);
+            LPC_PINCON->PINSEL1 &= ~(0x3<<24);
+            LPC_PINCON->PINSEL1 |=  (0x1<<24);
+            //set_gpio_select(I2C_MOD_CLK, 1);
+            //set_gpio_select(I2C_MOD_DATA, 1);
+            //set_gpio_dir(I2C_MOD_CLK, GPIO_OUTPUT);
+            //set_gpio_dir(I2C_MOD_DATA, GPIO_OUTPUT);
+            //set_gpio_pull(I2C_MOD_CLK, 1);
+            //set_gpio_pull(I2C_MOD_DATA, 1);
+            //set_gpio_od(I2C_MOD_CLK, 1);
+            //set_gpio_od(I2C_MOD_DATA, 1);
+            /* Set pins for normal 100MHz operation */
+            //LPC_PINCON->I2CPADCFG &= ~(0x0F);
             // Clear flags
-            LPC_I2C0->I2CONCLR = I2CONCLR_AAC | I2CONCLR_SIC | I2CONCLR_STAC | I2CONCLR_I2ENC;
+            //LPC_I2C0->I2CONCLR = I2CONCLR_AAC | I2CONCLR_SIC | I2CONCLR_STAC | I2CONCLR_I2ENC;
             // Set up the clock 
-            LPC_SC->PCLKSEL0 |= 10 << 14;
+            LPC_SC->PCLKSEL0 |= 0x3 << 14; /* Sets the peripheral clock to 100/8 = 12.5 MHz */
             // Reset registers
             //LPC_I2C0->I2SCLL = 100; //I2SCLL_SCLL;
             //LPC_I2C0->I2SCLH = 100; //I2SCLH_SCLH;
-            LPC_I2C0->I2SCLL = 50; //I2SCLL_SCLL;
-            LPC_I2C0->I2SCLH = 50; //I2SCLH_SCLH;
+            LPC_I2C0->I2SCLL = 65; //I2SCLL_SCLL;
+            LPC_I2C0->I2SCLH = 65; //I2SCLH_SCLH;
             LPC_I2C0->I2ADR0 = 0x55<<1; // TODO: give address ; Shift by one
                                         // because first bit is reserved for
                                         // "general call enable". Sec 19.8.7
@@ -39,7 +48,7 @@ void I2cInit(uint8_t module)
             NVIC_EnableIRQ(I2C0_IRQn);
 
             LPC_I2C0->I2CONSET = I2CONSET_I2EN | I2CONSET_AA;
-            LPC_I2C0->I2CONCLR = I2CONCLR_STAC | I2CONCLR_STOC | I2CONCLR_SIC;
+            //LPC_I2C0->I2CONCLR = I2CONCLR_STAC | I2CONCLR_STOC | I2CONCLR_SIC;
             break;
         case SENSOR_BUS: // I2C1 - Sensor bus - I am master
             set_gpio_select(I2C_SEN_CLK, 3);
@@ -163,12 +172,12 @@ uint32_t I2cWrite(uint8_t module, uint32_t address, uint32_t data[], uint32_t si
 
     i2c_bus[module].command = 0;
     I2cEngine(module);
+    return 0;
 }
 
 uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size)
 {
     uint32_t i = 0;
-    char buffer[30];
     i2c_bus[module].write_length = 1; // address
     i2c_bus[module].read_length = size;
 
@@ -196,8 +205,11 @@ uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size)
 
 void I2C0_IRQHandler(void) // MODULE
 {
-    LPC_I2C0->I2CONSET = I2CONSET_SI;
-    printf("STATE: 0x%X\n", LPC_I2C0->I2STAT);
+    printf("Whee!\n");
+    //LPC_I2C0->I2CONSET |= I2CONSET_SI;
+    //while(LPC_I2C0->I2CONSET | I2CONSET_SI == 0); /* Wait for SI to be set */
+    printf("STATE: 0x%X DATA: 0x%X DATABUF: 0x%X SI:0x%X\n", 
+      LPC_I2C0->I2STAT, LPC_I2C0->I2DAT, LPC_I2C0->I2DATA_BUFFER, LPC_I2C0->I2CONSET&I2CONSET_SI);
     LPC_I2C0->I2CONSET = I2CONSET_AA; // assert ACK after data is received
     LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
     return;
@@ -292,10 +304,17 @@ void I2C0_IRQHandler(void) // MODULE
             i2c_bus[MODULE_BUS].master_state = DATA_NACK;
             break;
         case SR_ADDRESSED:
+          LPC_I2C0->I2CONSET = 0x04; 
+          LPC_I2C0->I2CONCLR = 0x08;
+          break;
+          
         case SR_GEN_CALL:
         case SR_DATA_RECV_ACK:
         case SR_GEN_CALL_DATA:
         case SR_STOP:
+          slave_reset();
+          LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
+          break;
           slave_recv_state_machine(LPC_I2C0->I2STAT);
           LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
           break;
@@ -314,10 +333,10 @@ enum slave_state_e {
 void slave_recv_state_machine(uint32_t I2C_state)
 {
   static enum slave_state_e state = SLAVE_IDLE;
-  static int recv_len;
-  static int recv_index;
+  //static int recv_len;
+  //static int recv_index;
   static uint8_t reg;
-  static uint8_t recv_buffer[20];
+  //static uint8_t recv_buffer[20];
   uint8_t dat;
   switch(I2C_state) {
     case SR_ADDRESSED: /* We have been addressed. */
@@ -386,6 +405,12 @@ void slave_write_register(uint8_t reg, uint8_t dat)
   }
   //set_motor_position_abs(motor_index, motor[motor_index].desired_position, I2C_MOTOR_SPEED);
   printf("Set motor %d to position 0x%X\n", motor_index, motor[motor_index].desired_position);
+}
+
+void slave_reset()
+{
+  LPC_I2C0->I2CONCLR = I2CONCLR_AAC | I2CONCLR_SIC | I2CONCLR_STAC | I2CONCLR_I2ENC;
+  LPC_I2C0->I2CONSET = I2CONSET_I2EN | I2CONSET_AA;
 }
 
 void reply_ack()

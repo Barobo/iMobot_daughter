@@ -1,5 +1,6 @@
 #ifndef __I2C_H
 #define __I2C_H
+#define PCI2C0              7
 #define PCI2C               19
 #define I2C_BUFSIZE         0x20
 #define MAX_TIMEOUT         0x00FFFFFF

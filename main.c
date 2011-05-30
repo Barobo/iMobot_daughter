@@ -31,6 +31,8 @@ int main(void)
 	int32_t enc1, enc2;
     uint32_t current_time = 0;
     SystemInit();
+    SystemCoreClockUpdate();
+    printf("System Core Clock: %d\n", SystemCoreClock);
     GpioInit();
     //AdcInit();
 
@@ -42,7 +44,7 @@ int main(void)
     MotorInit();
     MotorStart();
 
-    I2cInit(SENSOR_BUS);
+    //I2cInit(SENSOR_BUS);
     I2cInit(MODULE_BUS);
     current_time = now;
     while(1);
