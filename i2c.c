@@ -1,5 +1,6 @@
 #include "global.h"
 #include "i2c.h"
+#include "motor.h"
 
 #include "consoleprint.h"
 
@@ -25,8 +26,10 @@ void I2cInit(uint8_t module)
             // Set up the clock 
             LPC_SC->PCLKSEL0 |= 10 << 14;
             // Reset registers
-            LPC_I2C0->I2SCLL = 100; //I2SCLL_SCLL;
-            LPC_I2C0->I2SCLH = 100; //I2SCLH_SCLH;
+            //LPC_I2C0->I2SCLL = 100; //I2SCLL_SCLL;
+            //LPC_I2C0->I2SCLH = 100; //I2SCLH_SCLH;
+            LPC_I2C0->I2SCLL = 50; //I2SCLL_SCLL;
+            LPC_I2C0->I2SCLH = 50; //I2SCLH_SCLH;
             LPC_I2C0->I2ADR0 = 0x55<<1; // TODO: give address ; Shift by one
                                         // because first bit is reserved for
                                         // "general call enable". Sec 19.8.7
@@ -36,6 +39,7 @@ void I2cInit(uint8_t module)
             NVIC_EnableIRQ(I2C0_IRQn);
 
             LPC_I2C0->I2CONSET = I2CONSET_I2EN | I2CONSET_AA;
+            LPC_I2C0->I2CONCLR = I2CONCLR_STAC | I2CONCLR_STOC | I2CONCLR_SIC;
             break;
         case SENSOR_BUS: // I2C1 - Sensor bus - I am master
             set_gpio_select(I2C_SEN_CLK, 3);
@@ -192,10 +196,16 @@ uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size)
 
 void I2C0_IRQHandler(void) // MODULE
 {
-    LPC_I2C0->I2CONSET = I2CONSET_SI | I2CONSET_AA;
-    printf("I2C0 IRQHandler Activated. %x DAT:%x\n", LPC_I2C0->I2STAT, LPC_I2C0->I2DAT);
+    LPC_I2C0->I2CONSET = I2CONSET_SI;
+    printf("STATE: 0x%X\n", LPC_I2C0->I2STAT);
+    LPC_I2C0->I2CONSET = I2CONSET_AA; // assert ACK after data is received
+    LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
+    return;
     switch(LPC_I2C0->I2STAT)
     {
+        case 0x0: /* Error */
+            LPC_I2C0->I2CONSET = 0x14;
+            LPC_I2C0->I2CONCLR = 0x08;
         case MT_START:
             LPC_I2C0->I2DAT = i2c_bus[MODULE_BUS].master_buffer[0];
             LPC_I2C0->I2CONCLR = (I2CONCLR_SIC | I2CONCLR_STAC);
@@ -282,35 +292,110 @@ void I2C0_IRQHandler(void) // MODULE
             i2c_bus[MODULE_BUS].master_state = DATA_NACK;
             break;
         case SR_ADDRESSED:
-            printf("Received data: %x\n", LPC_I2C0->I2DAT);
-            LPC_I2C0->I2CONSET = I2CONSET_AA;
-            LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
-            break;
         case SR_GEN_CALL:
-            printf("Received data: %x\n", LPC_I2C0->I2DAT);
-            LPC_I2C0->I2CONSET = I2CONSET_AA;
-            LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
-            break;
         case SR_DATA_RECV_ACK:
-            printf("Received data: %x\n", LPC_I2C0->I2DAT);
-            LPC_I2C0->I2CONSET = I2CONSET_AA;
-            LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
-            break;
         case SR_GEN_CALL_DATA:
-            printf("Received data: %x\n", LPC_I2C0->I2DAT);
-            LPC_I2C0->I2CONSET = I2CONSET_AA;
-            LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
-            break;
         case SR_STOP:
-            printf("Received data: %x\n", LPC_I2C0->I2DAT);
-            LPC_I2C0->I2CONSET = I2CONSET_AA;
-            LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
-            break;
+          slave_recv_state_machine(LPC_I2C0->I2STAT);
+          LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
+          break;
         case MT_ARB_LOST:
         default:
             LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
             break;
     }
+}
+
+enum slave_state_e {
+  SLAVE_IDLE,
+  SLAVE_RECV,
+  SLAVE_SEND };
+
+void slave_recv_state_machine(uint32_t I2C_state)
+{
+  static enum slave_state_e state = SLAVE_IDLE;
+  static int recv_len;
+  static int recv_index;
+  static uint8_t reg;
+  static uint8_t recv_buffer[20];
+  uint8_t dat;
+  switch(I2C_state) {
+    case SR_ADDRESSED: /* We have been addressed. */
+      printf("Addressed.\n");
+      reply_ack();
+      break;
+    case SR_DATA_RECV_ACK:
+      dat = LPC_I2C0->I2DAT;
+      printf("Recv: Received data: %x\n", dat);
+      reply_ack(); /* DEBUG */
+      break;
+      switch(state) {
+        case SLAVE_IDLE:
+          /* This is the first byte we are receiving. This byte will indicate
+           * the register address to write/read to. */
+          /* Check to make sure address is within bounds */
+          if(dat < 0x30 || dat > 0x65) {
+            reply_nack();
+            break;
+          }
+          /* It is in bounds. Process the address and set the correct state. */
+          reg = dat;
+          state = SLAVE_RECV;
+          reply_ack();
+          break;
+        case SLAVE_RECV:
+          /* For now, we only receive 1 byte at a time. Multi-byte transfers
+           * will be implemented later. */
+          slave_write_register(reg, LPC_I2C0->I2DAT);
+          state = SLAVE_IDLE;
+          reply_nack();
+        default:
+          reply_nack();
+          break;
+      }
+      break;
+    case SR_STOP:
+      state = SLAVE_IDLE;
+      reply_ack();
+      break;
+    default:
+      reply_nack();
+      break;
+  }
+}
+
+#define I2C_MOTOR_SPEED 20
+void slave_write_register(uint8_t reg, uint8_t dat)
+{
+  uint8_t motor_index;
+  motor_index = (reg>>8) - 3;
+  /* if lower word is "2" or "3", we want to write to motor positions. */
+  if( 0x0F&reg == 2) {
+    /* Write to the high byte of the motor position */
+    /* First, clear high byte */
+    motor[motor_index].desired_position &= 0x00FF;
+    /* Now write it */
+    motor[motor_index].desired_position |= dat<<8;
+  }
+  if( 0x0F&reg == 3) {
+    /* Write to the low byte of the motor position */
+    /* First, clear low byte */
+    motor[motor_index].desired_position &= 0xFF00;
+    /* Now write it */
+    motor[motor_index].desired_position |= (uint16_t) (0x00FF & dat);
+  }
+  //set_motor_position_abs(motor_index, motor[motor_index].desired_position, I2C_MOTOR_SPEED);
+  printf("Set motor %d to position 0x%X\n", motor_index, motor[motor_index].desired_position);
+}
+
+void reply_ack()
+{
+  LPC_I2C0->I2CONSET = I2CONSET_AA;
+}
+
+void reply_nack()
+{
+  LPC_I2C0->I2CONCLR = 0x0C;
 }
 
 void I2C1_IRQHandler(void) // SENSORS

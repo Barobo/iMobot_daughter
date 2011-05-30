@@ -5,7 +5,7 @@
 
 motor_t motor[4];
 
-#define MOTOR_GOAL_TOLERANCE 10
+#define MOTOR_GOAL_TOLERANCE 8
 
 uint32_t MotorInit()
 {
@@ -61,10 +61,13 @@ uint32_t MotorInit()
 #define MOTOR_SCALE 100
 void set_motor_speed(uint32_t channel, int cycle)
 {
-
+    /* The direction for the back-side motor has been flipflopped. */
+    if(channel == MOTOR_BACK_SIDE) {
+      cycle = -cycle;
+    }
     switch(channel)
     {
-        case 0:
+        case MOTOR_BACK_FRONT:
             if(cycle > 0)
             {
                 set_gpio_pin(M1_DIR1, GPIO_OFF);
@@ -78,7 +81,7 @@ void set_motor_speed(uint32_t channel, int cycle)
                 LPC_PWM1->MR4 = -cycle * MOTOR_SCALE;
             }
             break;
-        case 1:
+        case MOTOR_BACK_SIDE:
             if(cycle > 0)
             {
                 set_gpio_pin(M2_DIR1, GPIO_OFF);
@@ -92,7 +95,7 @@ void set_motor_speed(uint32_t channel, int cycle)
                 LPC_PWM1->MR3 = -cycle * MOTOR_SCALE;
             }
             break;
-        case 2:
+        case MOTOR_FRONT_FRONT:
             if(cycle > 0)
             {
                 set_gpio_pin(M3_DIR1, GPIO_OFF);
@@ -106,7 +109,7 @@ void set_motor_speed(uint32_t channel, int cycle)
                 LPC_PWM1->MR6 = -cycle * MOTOR_SCALE;
             }
             break;
-        case 3:
+        case MOTOR_FRONT_SIDE:
             if(cycle > 0)
             {
                 set_gpio_pin(M4_DIR1, GPIO_OFF);

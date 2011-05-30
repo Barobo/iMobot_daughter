@@ -69,6 +69,7 @@ typedef struct
 
 #define I2CONCLR_AAC        0x00000004  /* I2C Control clear Register */
 #define I2CONCLR_SIC        0x00000008
+#define I2CONCLR_STOC       0x00000010
 #define I2CONCLR_STAC       0x00000020
 #define I2CONCLR_I2ENC      0x00000040
 
@@ -88,4 +89,8 @@ extern uint32_t I2cWrite(uint8_t module, uint32_t address, uint32_t data[],
         uint32_t size);
 extern uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size);
 
+void slave_recv_state_machine(uint32_t I2C_state);
+void slave_write_register(uint8_t reg, uint8_t dat);
+void reply_ack();
+void reply_nack();
 #endif

@@ -22,7 +22,7 @@
 /* Center positions for each joint */
 #define BS_CENTER 49
 #define BF_CENTER 277
-#define FS_CENTER 260
+#define FS_CENTER 240 //260
 #define FF_CENTER 29
 
 #endif //GLOBAL_H

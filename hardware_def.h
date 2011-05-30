@@ -36,10 +36,10 @@ enum
 // Motors
 enum
 {
-    MOTOR_FRONT_FRONT = 2,
-    MOTOR_FRONT_SIDE = 3,
-    MOTOR_BACK_FRONT = 0,
-    MOTOR_BACK_SIDE = 1
+    MOTOR_FRONT_SIDE = 0,
+    MOTOR_BACK_SIDE,
+    MOTOR_FRONT_FRONT,
+    MOTOR_BACK_FRONT
 };
 
 #define M12_STBY        208
