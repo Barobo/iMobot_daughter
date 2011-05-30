@@ -43,8 +43,10 @@ int main(void)
     MotorStart();
 
     I2cInit(SENSOR_BUS);
+    I2cInit(MODULE_BUS);
     current_time = now;
     while(now < current_time + 1000);
+    while(1);
 
     // Move the body joints a little
     home();

@@ -16,17 +16,26 @@ void I2cInit(uint8_t module)
         case MODULE_BUS: // I2C0 - Module bus - I am slave
             set_gpio_select(I2C_MOD_CLK, 1);
             set_gpio_select(I2C_MOD_DATA, 1);
+            set_gpio_pull(I2C_MOD_CLK, 1);
+            set_gpio_pull(I2C_MOD_DATA, 1);
+            set_gpio_od(I2C_MOD_CLK, 1);
+            set_gpio_od(I2C_MOD_DATA, 1);
             // Clear flags
             LPC_I2C0->I2CONCLR = I2CONCLR_AAC | I2CONCLR_SIC | I2CONCLR_STAC | I2CONCLR_I2ENC;
+            // Set up the clock 
+            LPC_SC->PCLKSEL0 |= 10 << 14;
             // Reset registers
-            LPC_I2C0->I2SCLL = I2SCLL_SCLL;
-            LPC_I2C0->I2SCLH = I2SCLH_SCLH;
-            LPC_I2C0->I2ADR0 = 0x55; // TODO: give address
+            LPC_I2C0->I2SCLL = 100; //I2SCLL_SCLL;
+            LPC_I2C0->I2SCLH = 100; //I2SCLH_SCLH;
+            LPC_I2C0->I2ADR0 = 0x55<<1; // TODO: give address ; Shift by one
+                                        // because first bit is reserved for
+                                        // "general call enable". Sec 19.8.7
+            LPC_I2C0->I2MASK0 = 0x7F<<1; // Address mask
 
             // Install interrupt handler
             NVIC_EnableIRQ(I2C0_IRQn);
 
-            LPC_I2C0->I2CONSET = I2CONSET_I2EN;
+            LPC_I2C0->I2CONSET = I2CONSET_I2EN | I2CONSET_AA;
             break;
         case SENSOR_BUS: // I2C1 - Sensor bus - I am master
             set_gpio_select(I2C_SEN_CLK, 3);
@@ -183,6 +192,8 @@ uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size)
 
 void I2C0_IRQHandler(void) // MODULE
 {
+    LPC_I2C0->I2CONSET = I2CONSET_SI | I2CONSET_AA;
+    printf("I2C0 IRQHandler Activated. %x DAT:%x\n", LPC_I2C0->I2STAT, LPC_I2C0->I2DAT);
     switch(LPC_I2C0->I2STAT)
     {
         case MT_START:
@@ -259,6 +270,7 @@ void I2C0_IRQHandler(void) // MODULE
             else
             {
                 i2c_bus[MODULE_BUS].read_index = 0;
+                printf("I2c read length: %d\n", i2c_bus[MODULE_BUS].read_length);
                 i2c_bus[MODULE_BUS].master_state = DATA_NACK;
             }
             LPC_I2C0->I2CONSET = I2CONSET_AA; // assert ACK after data is received
@@ -268,6 +280,31 @@ void I2C0_IRQHandler(void) // MODULE
         case MR_DATA_NACK:
             LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
             i2c_bus[MODULE_BUS].master_state = DATA_NACK;
+            break;
+        case SR_ADDRESSED:
+            printf("Received data: %x\n", LPC_I2C0->I2DAT);
+            LPC_I2C0->I2CONSET = I2CONSET_AA;
+            LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
+            break;
+        case SR_GEN_CALL:
+            printf("Received data: %x\n", LPC_I2C0->I2DAT);
+            LPC_I2C0->I2CONSET = I2CONSET_AA;
+            LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
+            break;
+        case SR_DATA_RECV_ACK:
+            printf("Received data: %x\n", LPC_I2C0->I2DAT);
+            LPC_I2C0->I2CONSET = I2CONSET_AA;
+            LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
+            break;
+        case SR_GEN_CALL_DATA:
+            printf("Received data: %x\n", LPC_I2C0->I2DAT);
+            LPC_I2C0->I2CONSET = I2CONSET_AA;
+            LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
+            break;
+        case SR_STOP:
+            printf("Received data: %x\n", LPC_I2C0->I2DAT);
+            LPC_I2C0->I2CONSET = I2CONSET_AA;
+            LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
             break;
         case MT_ARB_LOST:
         default:

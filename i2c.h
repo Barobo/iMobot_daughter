@@ -55,6 +55,11 @@ typedef struct
 #define MR_DATA_NACK        0x48
 #define MR_RECIEVE_ACK      0x50
 #define MR_RECIEVE_NACK     0x58
+#define SR_ADDRESSED        0x60 // Slave has been addressed
+#define SR_GEN_CALL         0x70
+#define SR_DATA_RECV_ACK    0x80
+#define SR_GEN_CALL_DATA    0x90
+#define SR_STOP             0xA0
 
 #define I2CONSET_I2EN       0x00000040  /* I2C Control Set Register */
 #define I2CONSET_AA         0x00000004
