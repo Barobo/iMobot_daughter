@@ -200,6 +200,8 @@ void GpioInit(void)
     set_gpio_dir(RED_LED, GPIO_OUTPUT);
     set_gpio_select(GREEN_LED, 0);
     set_gpio_dir(GREEN_LED, GPIO_OUTPUT);
+    set_gpio_pin(RED_LED, GPIO_ON);
+    set_gpio_od(GREEN_LED, 1);
 
     set_gpio_dir(SEN_1_EN,GPIO_OUTPUT);
     set_gpio_dir(SEN_2_EN,GPIO_OUTPUT);

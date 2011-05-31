@@ -55,7 +55,7 @@ int main(void)
     //set_motor_position(MOTOR_BACK_SIDE, 255, 0);
     //set_motor_speed(MOTOR_BACK_SIDE, -20);
     msleep(3000);
-    rotate_left();
+    stand();
     while(1);
 
 #if 0
@@ -135,24 +135,30 @@ int main(void)
     flat();
     stand();
     msleep(250);
+    enc = 0;
     for(i = 0; i < 2; i++) {
-    	enc = 0;
     	set_motor_position(MOTOR_BACK_FRONT, enc, 40);
     	wait_motor(MOTOR_BACK_FRONT);
     	enc += 180;
     }
+    msleep(250);
+    enc = 0;
     for(i = 0; i < 4; i++) {
-    	enc = 0;
-        set_motor_position(MOTOR_BACK_FRONT, enc, -40);
-        wait_motor(MOTOR_BACK_FRONT);
-        enc -= 180;
+      set_motor_position(MOTOR_BACK_FRONT, enc, -40);
+      wait_motor(MOTOR_BACK_FRONT);
+      enc -= 180;
     }
+    msleep(250);
+    enc = 0;
     for(i = 0; i < 4; i++) {
-    	enc = 0;
     	set_motor_position(MOTOR_FRONT_FRONT, enc, 40);
     	wait_motor(MOTOR_FRONT_FRONT);
     	enc += 180;
     }
+    set_motor_position_abs(MOTOR_FRONT_FRONT, 0, 50);
+    set_motor_position_abs(MOTOR_BACK_FRONT, 0, 50);
+    wait_motor(MOTOR_FRONT_FRONT);
+    unstand();
 #endif
 
 
