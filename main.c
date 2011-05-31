@@ -45,7 +45,7 @@ int main(void)
     MotorStart();
 
     I2cInit(SENSOR_BUS);
-    I2cInit(MODULE_BUS);
+//    I2cInit(MODULE_BUS);
     current_time = now;
 
     msleep(3000);
@@ -55,8 +55,6 @@ int main(void)
     //set_motor_position(MOTOR_BACK_SIDE, 255, 0);
     //set_motor_speed(MOTOR_BACK_SIDE, -20);
     msleep(3000);
-    stand();
-    while(1);
 
 #if 0
     set_motor_position(MOTOR_BACK_SIDE, -40, 0);
@@ -112,8 +110,8 @@ int main(void)
 
 #ifdef DEMO3
 
-    for(i = 0; i < 3; i++) {
-    	inch_right();
+    for(i = 0; i < 2; i++) {
+    	inch_left();
     }
 
     /* Rotate head up 45 deg. */
@@ -126,7 +124,7 @@ int main(void)
     	set_motor_position(MOTOR_BACK_FRONT, enc, 80);
     	wait_motor(MOTOR_BACK_FRONT);
     }
-    msleep(1000);
+    msleep(500);
     for(i = 0; i < 4; i++) {
     	enc -= 180;
     	set_motor_position(MOTOR_BACK_FRONT, enc, -80);
@@ -158,7 +156,11 @@ int main(void)
     set_motor_position_abs(MOTOR_FRONT_FRONT, 0, 50);
     set_motor_position_abs(MOTOR_BACK_FRONT, 0, 50);
     wait_motor(MOTOR_FRONT_FRONT);
+    wait_motor(MOTOR_BACK_FRONT);
     unstand();
+    for(i = 0; i < 2; i++) {
+    	inch_left();
+    }
 #endif
 
 
