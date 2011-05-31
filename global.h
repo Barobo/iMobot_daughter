@@ -9,7 +9,7 @@
 #define LPC_X_DEBUG //LPCxpresso debug board
 
 #define REWORKED_ENCODER_BOARD
-//#define VERBOSE
+#define VERBOSE
 
 // these must follow compiler flags
 #include "LPC17xx.h"
@@ -20,9 +20,9 @@
 #define ABS(a)     (((a) < 0) ? -(a) : (a))
 
 /* Center positions for each joint */
-#define BS_CENTER 49
-#define BF_CENTER 277
-#define FS_CENTER 240 //260
+#define FS_CENTER 250
+#define BS_CENTER 45
 #define FF_CENTER 29
+#define BF_CENTER 160
 
 #endif //GLOBAL_H

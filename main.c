@@ -37,26 +37,27 @@ int main(void)
     //AdcInit();
 
     TimerInit(0, 1ul * _millisecond);
-    CallbackRegister(MotorHandler, 10ul * _millisecond);
+    CallbackRegister(MotorHandler, 7ul * _millisecond);
     CallbackEnable(MotorHandler);
     TimerEnable(0);
     EncoderInit();
     MotorInit();
     MotorStart();
 
-    //I2cInit(SENSOR_BUS);
+    I2cInit(SENSOR_BUS);
     I2cInit(MODULE_BUS);
     current_time = now;
-    while(1);
-    while(now < current_time + 5000);
+
+    msleep(3000);
 
     // Move the body joints a little
     home();
     //set_motor_position(MOTOR_BACK_SIDE, 255, 0);
     //set_motor_speed(MOTOR_BACK_SIDE, -20);
     msleep(3000);
-    inch_right();
+    rotate_left();
     while(1);
+
 #if 0
     set_motor_position(MOTOR_BACK_SIDE, -40, 0);
     set_motor_speed(MOTOR_BACK_SIDE, -30);
@@ -116,7 +117,7 @@ int main(void)
     }
 
     /* Rotate head up 45 deg. */
-    set_motor_position_abs(MOTOR_FRONT_SIDE, -45, 80);
+    set_motor_position_abs(MOTOR_FRONT_SIDE, 45, 80);
     msleep(250);
     /* Rotate back "wheel" 180 degrees */
     enc = EncoderRead(ENC_BACK_FRONT);

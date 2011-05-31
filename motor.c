@@ -5,7 +5,7 @@
 
 motor_t motor[4];
 
-#define MOTOR_GOAL_TOLERANCE 8
+#define MOTOR_GOAL_TOLERANCE 5
 
 uint32_t MotorInit()
 {
@@ -63,6 +63,9 @@ void set_motor_speed(uint32_t channel, int cycle)
 {
     /* The direction for the back-side motor has been flipflopped. */
     if(channel == MOTOR_BACK_SIDE) {
+      cycle = -cycle;
+    }
+    if(channel == MOTOR_BACK_FRONT) {
       cycle = -cycle;
     }
     switch(channel)
