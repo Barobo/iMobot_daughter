@@ -11,7 +11,7 @@
 #include "i2c.h"
 #include "motions.h"
 
-#define DEMO3
+#define DEMO5
 
 uint32_t get_ir_sen(void);
 char buffer[30];
@@ -31,8 +31,6 @@ int main(void)
 	int32_t enc1, enc2;
     uint32_t current_time = 0;
     SystemInit();
-    SystemCoreClockUpdate();
-    printf("System Core Clock: %d\n", SystemCoreClock);
     GpioInit();
     //AdcInit();
 
@@ -147,12 +145,6 @@ int main(void)
       enc -= 180;
     }
     msleep(250);
-    enc = 0;
-    for(i = 0; i < 4; i++) {
-    	set_motor_position(MOTOR_FRONT_FRONT, enc, 40);
-    	wait_motor(MOTOR_FRONT_FRONT);
-    	enc += 180;
-    }
     set_motor_position_abs(MOTOR_FRONT_FRONT, 0, 50);
     set_motor_position_abs(MOTOR_BACK_FRONT, 0, 50);
     wait_motor(MOTOR_FRONT_FRONT);
@@ -165,9 +157,6 @@ int main(void)
 
 
 #ifdef DEMO4
-    current_time = now;
-    while(now < current_time + 5000);
-
     // offset one motor
     enc1 = 0;
     enc2 = 180;
@@ -194,6 +183,62 @@ int main(void)
             wait_motor(MOTOR_FRONT_FRONT); wait_motor(MOTOR_BACK_FRONT);
         }
     }
+#endif
+
+#ifdef DEMO5
+
+  // offset one motor
+  enc1 = 0;
+  enc2 = 180;
+  set_motor_position(MOTOR_FRONT_FRONT, enc1, 70);
+  set_motor_position(MOTOR_BACK_FRONT,enc2, 72);
+  wait_motor(MOTOR_FRONT_FRONT);
+  wait_motor(MOTOR_BACK_FRONT);
+  msleep(500);
+
+  for(i = 0; i < 3; i++) {
+    enc1 += 180;
+    enc2 += 180;
+    set_motor_position(MOTOR_FRONT_FRONT, enc1, 70);
+    set_motor_position(MOTOR_BACK_FRONT,  enc2, 72);
+    wait_motor(MOTOR_FRONT_FRONT); wait_motor(MOTOR_BACK_FRONT);
+  }
+  enc1 += 180;
+  enc2 += 180;
+  set_motor_position(MOTOR_FRONT_FRONT, enc1, 70);
+  set_motor_position(MOTOR_BACK_FRONT,  enc2, 72);
+  set_motor_position_abs(MOTOR_FRONT_SIDE, 80, 70);
+  set_motor_position_abs(MOTOR_BACK_SIDE, 85, 70);
+  wait_motor(MOTOR_FRONT_FRONT);
+  wait_motor(MOTOR_BACK_FRONT);
+  for(i = 0; i < 4; i++) 
+  {
+    enc1 += 180;
+    enc2 += 180;
+    set_motor_position(MOTOR_FRONT_FRONT, enc1, 70);
+    set_motor_position(MOTOR_BACK_FRONT,  enc2, 72);
+    wait_motor(MOTOR_FRONT_FRONT); wait_motor(MOTOR_BACK_FRONT);
+  }
+  //set_motor_position_abs(MOTOR_BACK_SIDE, 45, 70);
+  for(i = 0; i < 9; i++) 
+  {
+    enc1 += 180;
+    enc2 -= 180;
+    set_motor_position(MOTOR_FRONT_FRONT, enc1, 70);
+    set_motor_position(MOTOR_BACK_FRONT,  enc2, -72);
+    wait_motor(MOTOR_FRONT_FRONT); 
+    wait_motor(MOTOR_BACK_FRONT);
+  }
+  for(i = 0; i < 9; i++) 
+  {
+    enc1 += 180;
+    enc2 += 180;
+    set_motor_position(MOTOR_FRONT_FRONT, enc1, 70);
+    set_motor_position(MOTOR_BACK_FRONT,  enc2, 72);
+    wait_motor(MOTOR_FRONT_FRONT); 
+    wait_motor(MOTOR_BACK_FRONT);
+  }
+
 #endif
 
     while(1);

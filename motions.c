@@ -37,20 +37,20 @@ void inch_left(void)
 
 void stand(void)
 {
-	set_motor_position_abs(MOTOR_FRONT_SIDE, -84, 70);
-	wait_motor(MOTOR_FRONT_SIDE);
-	set_motor_position_abs(MOTOR_BACK_SIDE, 75, 70);
+	set_motor_position_abs(MOTOR_BACK_SIDE, 88, 70);
 	wait_motor(MOTOR_BACK_SIDE);
+	set_motor_position_abs(MOTOR_FRONT_SIDE, -78, 70);
+	wait_motor(MOTOR_FRONT_SIDE);
   /* Now in fetal position */
 	msleep(500);
   /* Twist bottom plate */
-	set_motor_position_abs(MOTOR_FRONT_FRONT, 180, 50);
-	wait_motor(MOTOR_FRONT_FRONT);
+	set_motor_position_abs(MOTOR_BACK_FRONT, 180, 50);
+	wait_motor(MOTOR_BACK_FRONT);
 	msleep(250);
   /* Lift */
-	set_motor_position(MOTOR_FRONT_SIDE, 20, 55);
-	set_motor_position_abs(MOTOR_BACK_SIDE, 85, 30);
-	wait_motor(MOTOR_FRONT_SIDE);
+	set_motor_position(MOTOR_BACK_SIDE, -20, -55);
+	set_motor_position_abs(MOTOR_FRONT_SIDE, -85, 30);
+	wait_motor(MOTOR_BACK_SIDE);
 }
 
 void unstand(void)
