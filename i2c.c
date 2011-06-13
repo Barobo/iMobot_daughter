@@ -423,7 +423,7 @@ void slave_write_register(uint8_t reg, uint8_t dat)
     /* Now write it */
     motor[motor_index].desired_position |= (uint16_t) (0x00FF & dat);
   }
-  //set_motor_position_abs(motor_index, motor[motor_index].desired_position, I2C_MOTOR_SPEED);
+  set_motor_position_abs(motor_index, motor[motor_index].desired_position, I2C_MOTOR_SPEED);
   printf("Set motor %d to position 0x%X\n", motor_index, motor[motor_index].desired_position);
 }
 
