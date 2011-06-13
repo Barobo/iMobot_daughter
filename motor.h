@@ -67,6 +67,7 @@ typedef struct
 }motor_t;
 
 extern motor_t motor[4];
+extern int32_t g_enc[4];
 // states
 enum
 {

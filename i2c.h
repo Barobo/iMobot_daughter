@@ -61,6 +61,11 @@ typedef struct
 #define SR_DATA_RECV_ACK    0x80
 #define SR_GEN_CALL_DATA    0x90
 #define SR_STOP             0xA0
+#define ST_ADDRESSED        0xA8
+#define ST_ARB_LOST         0xB0
+#define ST_TRANSMIT_ACK     0xB8
+#define ST_TRANSMIT_NACK    0xC0
+#define ST_LAST_TRANSMIT_ACK 0xC8
 
 #define I2CONSET_I2EN       0x00000040  /* I2C Control Set Register */
 #define I2CONSET_AA         0x00000004
@@ -92,6 +97,7 @@ extern uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size);
 
 void slave_recv_state_machine(uint32_t I2C_state);
 void slave_write_register(uint8_t reg, uint8_t dat);
+void slave_read_register(uint8_t reg);
 void reply_ack();
 void reply_nack();
 #endif

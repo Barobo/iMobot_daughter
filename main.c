@@ -11,7 +11,7 @@
 #include "i2c.h"
 #include "motions.h"
 
-#define DEMO5
+#define HOME
 
 uint32_t get_ir_sen(void);
 char buffer[30];
@@ -43,16 +43,20 @@ int main(void)
     MotorStart();
 
     I2cInit(SENSOR_BUS);
-//    I2cInit(MODULE_BUS);
+    I2cInit(MODULE_BUS);
     current_time = now;
 
     msleep(3000);
 
     // Move the body joints a little
-    home();
+//    home();
     //set_motor_position(MOTOR_BACK_SIDE, 255, 0);
     //set_motor_speed(MOTOR_BACK_SIDE, -20);
     msleep(3000);
+
+#ifdef HOME
+    while(1);
+#endif
 
 #if 0
     set_motor_position(MOTOR_BACK_SIDE, -40, 0);

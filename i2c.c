@@ -210,9 +210,6 @@ void I2C0_IRQHandler(void) // MODULE
     //while(LPC_I2C0->I2CONSET | I2CONSET_SI == 0); /* Wait for SI to be set */
     printf("STATE: 0x%X DATA: 0x%X DATABUF: 0x%X SI:0x%X\n", 
       LPC_I2C0->I2STAT, LPC_I2C0->I2DAT, LPC_I2C0->I2DATA_BUFFER, LPC_I2C0->I2CONSET&I2CONSET_SI);
-    LPC_I2C0->I2CONSET = I2CONSET_AA; // assert ACK after data is received
-    LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
-    return;
     switch(LPC_I2C0->I2STAT)
     {
         case 0x0: /* Error */
@@ -312,9 +309,12 @@ void I2C0_IRQHandler(void) // MODULE
         case SR_DATA_RECV_ACK:
         case SR_GEN_CALL_DATA:
         case SR_STOP:
-          slave_reset();
-          LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
-          break;
+        case ST_ADDRESSED:
+        case ST_TRANSMIT_ACK:
+        case ST_TRANSMIT_NACK:
+          //slave_reset();
+          //LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
+          //break;
           slave_recv_state_machine(LPC_I2C0->I2STAT);
           LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
           break;
@@ -346,8 +346,6 @@ void slave_recv_state_machine(uint32_t I2C_state)
     case SR_DATA_RECV_ACK:
       dat = LPC_I2C0->I2DAT;
       printf("Recv: Received data: %x\n", dat);
-      reply_ack(); /* DEBUG */
-      break;
       switch(state) {
         case SLAVE_IDLE:
           /* This is the first byte we are receiving. This byte will indicate
@@ -374,8 +372,30 @@ void slave_recv_state_machine(uint32_t I2C_state)
       }
       break;
     case SR_STOP:
-      state = SLAVE_IDLE;
       reply_ack();
+      break;
+
+    /* 
+     * Slave Transmitter States *
+     */
+    case ST_ADDRESSED:
+      printf("Addressed for reading. State: %d\n", state);
+      /* Make sure we are in the "SLAVE_RECV" state, which means a valid
+       * address has been loaded into the register. */
+      if(state != SLAVE_RECV) {
+        reply_nack();
+        state = SLAVE_IDLE;
+        break;
+      } else {
+        slave_read_register(reg);
+        state = SLAVE_IDLE;
+        reply_ack();
+        break;
+      }
+      break;
+    case ST_TRANSMIT_NACK:
+      reply_ack();
+      state = SLAVE_IDLE;
       break;
     default:
       reply_nack();
@@ -387,16 +407,16 @@ void slave_recv_state_machine(uint32_t I2C_state)
 void slave_write_register(uint8_t reg, uint8_t dat)
 {
   uint8_t motor_index;
-  motor_index = (reg>>8) - 3;
+  motor_index = (reg>>4) - 3;
   /* if lower word is "2" or "3", we want to write to motor positions. */
-  if( 0x0F&reg == 2) {
+  if( (0x0F&reg) == 2) {
     /* Write to the high byte of the motor position */
     /* First, clear high byte */
     motor[motor_index].desired_position &= 0x00FF;
     /* Now write it */
     motor[motor_index].desired_position |= dat<<8;
   }
-  if( 0x0F&reg == 3) {
+  if( (0x0F&reg) == 3) {
     /* Write to the low byte of the motor position */
     /* First, clear low byte */
     motor[motor_index].desired_position &= 0xFF00;
@@ -405,6 +425,24 @@ void slave_write_register(uint8_t reg, uint8_t dat)
   }
   //set_motor_position_abs(motor_index, motor[motor_index].desired_position, I2C_MOTOR_SPEED);
   printf("Set motor %d to position 0x%X\n", motor_index, motor[motor_index].desired_position);
+}
+
+void slave_read_register(uint8_t reg)
+{
+  int32_t* enc = g_enc;
+  uint8_t motor_index;
+  motor_index = (reg>>4) - 3;
+  /* if lower word is "2" or "3", we want to read motor positions. */
+  if( (0x0F&reg) == 2) {
+    /* read the high byte of the motor position */
+    LPC_I2C0->I2DAT = 0x00FF & (enc[motor_index]>>8);
+    printf("Sent data 0x%X\n", 0x00FF & (enc[motor_index]>>8));
+  }
+  if( (0x0F&reg) == 3) {
+    /* read the low byte of the motor position */
+    LPC_I2C0->I2DAT = 0x00FF & (enc[motor_index]);
+    printf("Sent data 0x%X\n", 0x00FF & enc[motor_index]);
+  }
 }
 
 void slave_reset()

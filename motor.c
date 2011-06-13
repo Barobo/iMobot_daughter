@@ -4,6 +4,7 @@
 #include "consoleprint.h"
 
 motor_t motor[4];
+int32_t g_enc[4];
 
 #define MOTOR_GOAL_TOLERANCE 5
 
@@ -235,7 +236,7 @@ void wait_motor(uint32_t channel)
 
 void MotorHandler(void)
 {
-	int32_t enc[4];
+  int32_t* enc = g_enc;
 	static int32_t last_enc[4];
     int i;
     static int count;
