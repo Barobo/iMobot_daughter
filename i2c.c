@@ -205,11 +205,6 @@ uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size)
 
 void I2C0_IRQHandler(void) // MODULE
 {
-    printf("Whee!\n");
-    //LPC_I2C0->I2CONSET |= I2CONSET_SI;
-    //while(LPC_I2C0->I2CONSET | I2CONSET_SI == 0); /* Wait for SI to be set */
-    printf("STATE: 0x%X DATA: 0x%X DATABUF: 0x%X SI:0x%X\n", 
-      LPC_I2C0->I2STAT, LPC_I2C0->I2DAT, LPC_I2C0->I2DATA_BUFFER, LPC_I2C0->I2CONSET&I2CONSET_SI);
     switch(LPC_I2C0->I2STAT)
     {
         case 0x0: /* Error */
@@ -289,7 +284,6 @@ void I2C0_IRQHandler(void) // MODULE
             else
             {
                 i2c_bus[MODULE_BUS].read_index = 0;
-                printf("I2c read length: %d\n", i2c_bus[MODULE_BUS].read_length);
                 i2c_bus[MODULE_BUS].master_state = DATA_NACK;
             }
             LPC_I2C0->I2CONSET = I2CONSET_AA; // assert ACK after data is received
@@ -340,12 +334,10 @@ void slave_recv_state_machine(uint32_t I2C_state)
   uint8_t dat;
   switch(I2C_state) {
     case SR_ADDRESSED: /* We have been addressed. */
-      printf("Addressed.\n");
       reply_ack();
       break;
     case SR_DATA_RECV_ACK:
       dat = LPC_I2C0->I2DAT;
-      printf("Recv: Received data: %x\n", dat);
       switch(state) {
         case SLAVE_IDLE:
           /* This is the first byte we are receiving. This byte will indicate
@@ -379,7 +371,6 @@ void slave_recv_state_machine(uint32_t I2C_state)
      * Slave Transmitter States *
      */
     case ST_ADDRESSED:
-      printf("Addressed for reading. State: %d\n", state);
       /* Make sure we are in the "SLAVE_RECV" state, which means a valid
        * address has been loaded into the register. */
       if(state != SLAVE_RECV) {
@@ -409,22 +400,35 @@ void slave_write_register(uint8_t reg, uint8_t dat)
   uint8_t motor_index;
   motor_index = (reg>>4) - 3;
   /* if lower word is "2" or "3", we want to write to motor positions. */
-  if( (0x0F&reg) == 2) {
+  if( (0x0F&reg) == 0x02) {
     /* Write to the high byte of the motor position */
     /* First, clear high byte */
     motor[motor_index].desired_position &= 0x00FF;
     /* Now write it */
     motor[motor_index].desired_position |= dat<<8;
+    /* If the highest bit is set, it must be a negative number. */
+    if(dat & 0x80) {
+      motor[motor_index].desired_position |= 0xFFFF0000;
+    }
+    set_motor_position_abs(motor_index, motor[motor_index].desired_position, motor[motor_index].speed);
   }
-  if( (0x0F&reg) == 3) {
+  if( (0x0F&reg) == 0x03) {
     /* Write to the low byte of the motor position */
     /* First, clear low byte */
-    motor[motor_index].desired_position &= 0xFF00;
+    motor[motor_index].desired_position &= 0xFFFFFF00;
     /* Now write it */
     motor[motor_index].desired_position |= (uint16_t) (0x00FF & dat);
+    set_motor_position_abs(motor_index, motor[motor_index].desired_position, motor[motor_index].speed);
   }
-  set_motor_position_abs(motor_index, motor[motor_index].desired_position, I2C_MOTOR_SPEED);
-  printf("Set motor %d to position 0x%X\n", motor_index, motor[motor_index].desired_position);
+  if( (0x0F&reg) == 0x04) {
+    /* Set the "direction" register */
+    motor[motor_index].direction = dat;
+  }
+  if( (0x0F&reg) == 0x05) {
+    /* Set the "speed" register */
+    motor[motor_index].speed = dat;
+    set_motor_position_abs(motor_index, motor[motor_index].desired_position, motor[motor_index].speed);
+  }
 }
 
 void slave_read_register(uint8_t reg)
@@ -433,15 +437,21 @@ void slave_read_register(uint8_t reg)
   uint8_t motor_index;
   motor_index = (reg>>4) - 3;
   /* if lower word is "2" or "3", we want to read motor positions. */
-  if( (0x0F&reg) == 2) {
+  if( (0x0F&reg) == 0x02) {
     /* read the high byte of the motor position */
     LPC_I2C0->I2DAT = 0x00FF & (enc[motor_index]>>8);
-    printf("Sent data 0x%X\n", 0x00FF & (enc[motor_index]>>8));
   }
-  if( (0x0F&reg) == 3) {
+  if( (0x0F&reg) == 0x03) {
     /* read the low byte of the motor position */
     LPC_I2C0->I2DAT = 0x00FF & (enc[motor_index]);
-    printf("Sent data 0x%X\n", 0x00FF & enc[motor_index]);
+  }
+  if( (0x0F&reg) == 0x04) {
+    /* read the "direction" register */
+    LPC_I2C0->I2DAT = 0x00FF & (motor[motor_index].direction);
+  }
+  if( (0x0F&reg) == 0x05) {
+    /* read the "speed" register */
+    LPC_I2C0->I2DAT = 0x00FF & (motor[motor_index].speed);
   }
 }
 

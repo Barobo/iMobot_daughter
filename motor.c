@@ -6,10 +6,11 @@
 motor_t motor[4];
 int32_t g_enc[4];
 
-#define MOTOR_GOAL_TOLERANCE 5
+#define MOTOR_GOAL_TOLERANCE 8
 
 uint32_t MotorInit()
 {
+    int i;
     LPC_PINCON->PINSEL4 = 0x00001555; /* set GPIOs for all PWM pins on PWM0 */
 
     LPC_PWM1->TCR = TCR_RESET; /* Counter Reset */
@@ -56,6 +57,9 @@ uint32_t MotorInit()
     set_gpio_pin(M1_DIR2, 0);
 
     //NVIC_EnableIRQ(PWM1_IRQn);
+    for(i = 0; i < 4; i++) {
+        motor[i].speed = 20;
+    }
     return 1;
 }
 
@@ -135,45 +139,46 @@ void set_motor_speed(uint32_t channel, int cycle)
 void set_motor_position(uint32_t channel, int32_t position, int8_t direction_speed)
 {
     //position -= (position > 100) ? 100: 0;
-	int32_t enc;
-	while (position < 0) {
-		position += 360;
-	}
-	position = position % 360;
+    int32_t enc;
     motor[channel].desired_position = position;
     motor[channel].state = MOTOR_MOVING;
+    while (position < 0) {
+        position += 360;
+    }
+    position = position % 360;
+    int32_t desired_position = position;
     switch(channel)
     {
         case MOTOR_FRONT_FRONT:
-        	enc = EncoderRead(ENC_FRONT_FRONT);
-        	if (ABS(enc - motor[MOTOR_FRONT_FRONT].desired_position) < MOTOR_GOAL_TOLERANCE) {
-        		motor[channel].state = MOTOR_IDLE;
-        		break;
-        	}
+            enc = EncoderRead(ENC_FRONT_FRONT);
+            if (ABS(enc - desired_position) < MOTOR_GOAL_TOLERANCE) {
+                motor[channel].state = MOTOR_IDLE;
+                break;
+            }
             set_motor_speed(MOTOR_FRONT_FRONT, direction_speed);
             break;
         case MOTOR_FRONT_SIDE:
-        	enc = EncoderRead(ENC_FRONT_SIDE);
-        	if (ABS(enc - motor[MOTOR_FRONT_SIDE].desired_position) < MOTOR_GOAL_TOLERANCE) {
-        		motor[channel].state = MOTOR_IDLE;
-        		break;
-        	}
+            enc = EncoderRead(ENC_FRONT_SIDE);
+            if (ABS(enc - desired_position) < MOTOR_GOAL_TOLERANCE) {
+                motor[channel].state = MOTOR_IDLE;
+                break;
+            }
             set_motor_speed(MOTOR_FRONT_SIDE, direction_speed);
             break;
         case MOTOR_BACK_FRONT:
-        	enc = EncoderRead(ENC_BACK_FRONT);
-        	if (ABS(enc - motor[MOTOR_BACK_FRONT].desired_position) < MOTOR_GOAL_TOLERANCE) {
-        		motor[channel].state = MOTOR_IDLE;
-        	    break;
-        	}
+            enc = EncoderRead(ENC_BACK_FRONT);
+            if (ABS(enc - desired_position) < MOTOR_GOAL_TOLERANCE) {
+                motor[channel].state = MOTOR_IDLE;
+                break;
+            }
             set_motor_speed(MOTOR_BACK_FRONT, direction_speed);
             break;
         case MOTOR_BACK_SIDE:
-        	enc = EncoderRead(ENC_BACK_SIDE);
-        	if (ABS(enc - motor[MOTOR_BACK_SIDE].desired_position) < MOTOR_GOAL_TOLERANCE) {
-        		motor[channel].state = MOTOR_IDLE;
-        	    break;
-        	}
+            enc = EncoderRead(ENC_BACK_SIDE);
+            if (ABS(enc - desired_position) < MOTOR_GOAL_TOLERANCE) {
+                motor[channel].state = MOTOR_IDLE;
+                break;
+            }
             set_motor_speed(MOTOR_BACK_SIDE, direction_speed);
             break;
     }
@@ -205,10 +210,7 @@ void set_motor_position_abs(uint32_t channel, int32_t position, int8_t speed)
 		break;
 	}
 	/* Get both position and enc to a range of -180 <-> 180 */
-	while(position > 180) position -= 360;
-	while(position <= -180) position += 360;
-	while(enc > 180) enc -= 360;
-	if(enc > position) {
+	if(abs_angle_diff(enc, position) > 0) {
 		direction = -1;
 	} else {
 		direction = 1;
@@ -254,10 +256,11 @@ void MotorHandler(void)
      * to "-1". This will depend on how "desired_position" is specified
      */
     for(i = 0; i < 4; i++) {
-    	if((enc[i] - motor[i].desired_position) > 180) {
+    	while((enc[i] - motor[i].desired_position) > 180) {
     		/* enc is too high */
     		enc[i] -= 360;
-    	} else if ((enc[i] - motor[i].desired_position) < -180) {
+    	} 
+        while((enc[i] - motor[i].desired_position) < -180) {
     		/* enc is too low */
     		enc[i] += 360;
     	}
@@ -303,4 +306,17 @@ void MotorHandler(void)
         motor[MOTOR_BACK_SIDE].state = MOTOR_IDLE;
     }
 #endif
+}
+
+int32_t abs_angle_diff(int32_t a, int32_t b)
+{
+    /* Get the two numbers to within 180 of each other */
+    while(abs(a - b) >= 180) {
+        if(a > b) {
+            a -= 360;
+        } else {
+            a += 360;
+        }
+    }
+    return a-b;
 }

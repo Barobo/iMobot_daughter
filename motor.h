@@ -60,10 +60,18 @@
 #define LER5_EN			1 << 5
 #define LER6_EN			1 << 6
 
+typedef enum motor_dir_e {
+  MOTOR_DIR_AUTO,
+  MOTOR_DIR_FORWARD,
+  MOTOR_DIR_BACKWARD
+} motor_dir_t;
+
 typedef struct
 {
     uint8_t state;
-    uint16_t desired_position;
+    int32_t desired_position;
+    uint8_t direction;
+    uint8_t speed;
 }motor_t;
 
 extern motor_t motor[4];

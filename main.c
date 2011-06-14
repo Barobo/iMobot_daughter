@@ -49,7 +49,7 @@ int main(void)
     msleep(3000);
 
     // Move the body joints a little
-//    home();
+    home();
     //set_motor_position(MOTOR_BACK_SIDE, 255, 0);
     //set_motor_speed(MOTOR_BACK_SIDE, -20);
     msleep(3000);
