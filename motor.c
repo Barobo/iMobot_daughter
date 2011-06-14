@@ -125,11 +125,6 @@ void set_motor_speed(uint32_t channel, int cycle)
 
 void set_motor_position(uint32_t channel, uint32_t position, int8_t direction_speed)
 {
-    int32_t enc_bf = EncoderRead(ENC_FRONT_FRONT);
-    int32_t enc_bs = EncoderRead(ENC_FRONT_SIDE);
-    int32_t enc_ff = EncoderRead(ENC_BACK_FRONT);
-    int32_t enc_fs = EncoderRead(ENC_BACK_SIDE);
-
     position -= (position > 100) ? 100: 0;
     motor[channel].desired_position = position;
     motor[channel].state = MOTOR_MOVING;
@@ -165,10 +160,11 @@ void MotorStop()
 
 void MotorHandler(void)
 {
-    int32_t enc_bf = EncoderRead(ENC_FRONT_SIDE);
-    int32_t enc_bs = EncoderRead(ENC_FRONT_FRONT);
-    int32_t enc_ff = EncoderRead(ENC_BACK_FRONT);
-    int32_t enc_fs = EncoderRead(ENC_BACK_SIDE);
+    int32_t enc_bf = EncoderRead(ENC_BACK_FRONT);
+    int32_t enc_bs = EncoderRead(ENC_BACK_SIDE);
+    int32_t enc_ff = EncoderRead(ENC_FRONT_FRONT);
+    int32_t enc_fs = EncoderRead(ENC_FRONT_SIDE);
+    //PrintAllEncoders();
 
     if (ABS(enc_ff - motor[MOTOR_FRONT_FRONT].desired_position) < 5)
     {
@@ -190,5 +186,4 @@ void MotorHandler(void)
         set_motor_speed(MOTOR_BACK_SIDE,0);
         motor[MOTOR_BACK_SIDE].state = MOTOR_IDLE;
     }
-
 }
