@@ -157,40 +157,13 @@ void set_motor_position(uint32_t channel, int32_t position, int8_t direction_spe
     }
     position = position % ENCODER_RANGE;
     int32_t desired_position = position;
-    switch(channel)
-    {
-        case MOTOR_FRONT_FRONT:
-            enc = EncoderRead(ENC_FRONT_FRONT);
-            if (ABS(enc - desired_position) < MOTOR_GOAL_TOLERANCE) {
-                motor[channel].state = MOTOR_IDLE;
-                break;
-            }
-            set_motor_speed(MOTOR_FRONT_FRONT, direction_speed);
-            break;
-        case MOTOR_FRONT_SIDE:
-            enc = EncoderRead(ENC_FRONT_SIDE);
-            if (ABS(enc - desired_position) < MOTOR_GOAL_TOLERANCE) {
-                motor[channel].state = MOTOR_IDLE;
-                break;
-            }
-            set_motor_speed(MOTOR_FRONT_SIDE, direction_speed);
-            break;
-        case MOTOR_BACK_FRONT:
-            enc = EncoderRead(ENC_BACK_FRONT);
-            if (ABS(enc - desired_position) < MOTOR_GOAL_TOLERANCE) {
-                motor[channel].state = MOTOR_IDLE;
-                break;
-            }
-            set_motor_speed(MOTOR_BACK_FRONT, direction_speed);
-            break;
-        case MOTOR_BACK_SIDE:
-            enc = EncoderRead(ENC_BACK_SIDE);
-            if (ABS(enc - desired_position) < MOTOR_GOAL_TOLERANCE) {
-                motor[channel].state = MOTOR_IDLE;
-                break;
-            }
-            set_motor_speed(MOTOR_BACK_SIDE, direction_speed);
-            break;
+    enc = g_enc[channel];
+    if (ABS(enc - desired_position) < MOTOR_CONTROL_TOLERANCE) {
+        /* Turn the PID controller on */
+        motor[channel].pid_integ = 0;
+        motor[channel].pid_flag = 1;
+    } else {
+        set_motor_speed(channel, direction_speed);
     }
 }
 
@@ -205,20 +178,7 @@ void set_motor_position_abs(uint32_t channel, int32_t position, int8_t speed)
 {
 	int8_t direction;
 	int32_t enc;
-	switch(channel) {
-	case MOTOR_FRONT_FRONT:
-		enc = EncoderRead(ENC_FRONT_FRONT);
-		break;
-	case MOTOR_FRONT_SIDE:
-		enc = EncoderRead(ENC_FRONT_SIDE);
-		break;
-	case MOTOR_BACK_SIDE:
-		enc = EncoderRead(ENC_BACK_SIDE);
-		break;
-	case MOTOR_BACK_FRONT:
-		enc = EncoderRead(ENC_BACK_FRONT);
-		break;
-	}
+    enc = g_enc[channel];
 	/* Get both position and enc to a range of -180 <-> 180 */
 	if(abs_angle_diff(enc, position) > 0) {
 		direction = -1;

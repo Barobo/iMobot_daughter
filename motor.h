@@ -85,6 +85,7 @@ enum
 {
     MOTOR_IDLE = 0,
     MOTOR_MOVING = 1,
+    MOTOR_GOALSEEK = 2,
 };
 
 extern uint32_t MotorInit();
