@@ -238,7 +238,7 @@ void wait_motor(uint32_t channel)
 
 void MotorHandler(void)
 {
-  int32_t* enc = g_enc;
+  int32_t enc[4];
 	static int32_t last_enc[4];
     int i;
     static int count;
@@ -247,7 +247,9 @@ void MotorHandler(void)
     enc[MOTOR_BACK_SIDE] = EncoderRead(ENC_BACK_SIDE);
     enc[MOTOR_FRONT_FRONT] = EncoderRead(ENC_FRONT_FRONT);
     enc[MOTOR_FRONT_SIDE] = EncoderRead(ENC_FRONT_SIDE);
-
+    for(i = 0; i < 4; i++) {
+        g_enc[i] = enc[i];
+    }
 
     /* Before we do any comparisons, we need to make sure enc_xx is
      * within 180 degrees of desired_position. This is because a
@@ -295,7 +297,6 @@ void MotorHandler(void)
     	last_enc[i] = enc[i];
 #endif
     }
-#if 0
     /* Make sure the body joints do not go past their limits */
     if(enc[MOTOR_FRONT_SIDE] >= 90 && enc[MOTOR_FRONT_SIDE] <= 270) {
     	set_motor_speed(MOTOR_FRONT_SIDE, 0);
@@ -305,7 +306,6 @@ void MotorHandler(void)
         set_motor_speed(MOTOR_BACK_SIDE, 0);
         motor[MOTOR_BACK_SIDE].state = MOTOR_IDLE;
     }
-#endif
 }
 
 int32_t abs_angle_diff(int32_t a, int32_t b)
