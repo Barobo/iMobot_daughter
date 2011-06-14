@@ -6,7 +6,8 @@
 motor_t motor[4];
 int32_t g_enc[4];
 
-#define MOTOR_GOAL_TOLERANCE 8
+#define MOTOR_CONTROL_TOLERANCE 100
+#define MOTOR_GOAL_TOLERANCE 10
 
 uint32_t MotorInit()
 {
@@ -58,7 +59,13 @@ uint32_t MotorInit()
 
     //NVIC_EnableIRQ(PWM1_IRQn);
     for(i = 0; i < 4; i++) {
-        motor[i].speed = 20;
+        motor[i].state = 0;
+        motor[i].desired_position = 0;
+        motor[i].direction = 0;
+        motor[i].speed = 30;
+        motor[i].pid_flag = 0;
+        motor[i].pid_integ = 0;
+        motor[i].pid_integ_gain = 5;
     }
     return 1;
 }
@@ -66,6 +73,9 @@ uint32_t MotorInit()
 #define MOTOR_SCALE 100
 void set_motor_speed(uint32_t channel, int cycle)
 {
+    if(cycle != 0) {
+        motor[channel].state = MOTOR_MOVING;
+    }
     /* The direction for the back-side motor has been flipflopped. */
     if(channel == MOTOR_BACK_SIDE) {
       cycle = -cycle;
@@ -143,9 +153,9 @@ void set_motor_position(uint32_t channel, int32_t position, int8_t direction_spe
     motor[channel].desired_position = position;
     motor[channel].state = MOTOR_MOVING;
     while (position < 0) {
-        position += 360;
+        position += ENCODER_RANGE;
     }
-    position = position % 360;
+    position = position % ENCODER_RANGE;
     int32_t desired_position = position;
     switch(channel)
     {
@@ -242,6 +252,9 @@ void MotorHandler(void)
 	static int32_t last_enc[4];
     int i;
     static int count;
+    double gain;
+    int32_t err;
+    int32_t pid_out;
 
     enc[MOTOR_BACK_FRONT] = EncoderRead(ENC_BACK_FRONT);
     enc[MOTOR_BACK_SIDE] = EncoderRead(ENC_BACK_SIDE);
@@ -258,13 +271,13 @@ void MotorHandler(void)
      * to "-1". This will depend on how "desired_position" is specified
      */
     for(i = 0; i < 4; i++) {
-    	while((enc[i] - motor[i].desired_position) > 180) {
+    	while((enc[i] - motor[i].desired_position) > (ENCODER_RANGE/2)) {
     		/* enc is too high */
-    		enc[i] -= 360;
+    		enc[i] -= ENCODER_RANGE;
     	} 
-        while((enc[i] - motor[i].desired_position) < -180) {
+        while((enc[i] - motor[i].desired_position) < -(ENCODER_RANGE/2)) {
     		/* enc is too low */
-    		enc[i] += 360;
+    		enc[i] += ENCODER_RANGE;
     	}
     }
 #ifdef VERBOSE
@@ -279,30 +292,52 @@ void MotorHandler(void)
 #endif
     /* Check the position of each motor to see if it has reached its goal */
     for(i = 0; i < 4; i++) {
+        if(motor[i].state == MOTOR_IDLE) {
+            continue;
+        }
+
     	if (ABS(enc[i] - motor[i].desired_position) < MOTOR_GOAL_TOLERANCE)
     	{
-    		set_motor_speed(i,0);
-    		motor[i].state = MOTOR_IDLE;
+            /* Stop the motor */
+            set_motor_speed(i, 0);
+            motor[i].state = MOTOR_IDLE;
+            motor[i].pid_flag = 0;
+            continue;
     	}
-    	/* Try and detect if we have overshot our mark */
-#if 0
-    	if (
-    			(last_enc[i] > motor[i].desired_position && enc < motor[i].desired_position) ||
-    			(last_enc[i] < motor[i].desired_position && enc > motor[i].desired_position) )
+
+        if(motor[i].pid_flag) {
+            err = abs_angle_diff(motor[i].desired_position, enc[i]);
+            gain = (double)motor[i].speed / (double)MOTOR_CONTROL_TOLERANCE;
+            motor[i].pid_integ += motor[i].pid_integ_gain * err * g_motorHandlerTimestep;
+            pid_out = ((double)err)*gain + motor[i].pid_integ;
+            if(pid_out > motor[i].speed) {
+                pid_out = motor[i].speed;
+            }
+            if(pid_out < -1*(int32_t)motor[i].speed) {
+                pid_out = -1*(int32_t)motor[i].speed;
+            }
+            set_motor_speed(i, pid_out);
+            continue;
+        }
+
+    	if (ABS(enc[i] - motor[i].desired_position) < MOTOR_CONTROL_TOLERANCE)
     	{
-    		printf(".");
-    		set_motor_speed(i, 0);
-    		motor[i].state = MOTOR_IDLE;
+            motor[i].pid_integ = 0;
+            motor[i].pid_flag = 1;
     	}
-    	last_enc[i] = enc[i];
-#endif
     }
     /* Make sure the body joints do not go past their limits */
-    if(enc[MOTOR_FRONT_SIDE] >= 90 && enc[MOTOR_FRONT_SIDE] <= 270) {
+    if(enc[MOTOR_FRONT_SIDE] >= 90*ENCODER_MULTIPLIER 
+        && 
+        enc[MOTOR_FRONT_SIDE] <= 270*ENCODER_MULTIPLIER) 
+    {
     	set_motor_speed(MOTOR_FRONT_SIDE, 0);
     	motor[MOTOR_FRONT_SIDE].state = MOTOR_IDLE;
     }
-    if(enc[MOTOR_BACK_SIDE] >= 90 && enc[MOTOR_BACK_SIDE] <= 270) {
+    if(enc[MOTOR_BACK_SIDE] >= 90*ENCODER_MULTIPLIER 
+        && 
+        enc[MOTOR_BACK_SIDE] <= 270*ENCODER_MULTIPLIER) 
+    {
         set_motor_speed(MOTOR_BACK_SIDE, 0);
         motor[MOTOR_BACK_SIDE].state = MOTOR_IDLE;
     }
@@ -311,11 +346,11 @@ void MotorHandler(void)
 int32_t abs_angle_diff(int32_t a, int32_t b)
 {
     /* Get the two numbers to within 180 of each other */
-    while(abs(a - b) >= 180) {
+    while(abs(a - b) >= 180*ENCODER_MULTIPLIER) {
         if(a > b) {
-            a -= 360;
+            a -= 360*ENCODER_MULTIPLIER;
         } else {
-            a += 360;
+            a += 360*ENCODER_MULTIPLIER;
         }
     }
     return a-b;

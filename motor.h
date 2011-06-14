@@ -72,10 +72,14 @@ typedef struct
     int32_t desired_position;
     uint8_t direction;
     uint8_t speed;
+    double pid_flag;  /* Flag for if currently in PID control or not */
+    double pid_integ; /* Integrator for PID control */
+    double pid_integ_gain; 
 }motor_t;
 
 extern motor_t motor[4];
 extern int32_t g_enc[4];
+extern double g_motorHandlerTimestep;
 // states
 enum
 {

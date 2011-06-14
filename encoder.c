@@ -34,20 +34,20 @@ int32_t EncoderRead(uint32_t channel)
     {
         cnt_low++; // count
     }
-    enc = (360 * cnt_high / (cnt_high + cnt_low));
+    enc = (ENCODER_RANGE * cnt_high / (cnt_high + cnt_low));
     switch(channel) {
     case ENC_BACK_SIDE:
-    	enc -= BS_CENTER;
+    	enc -= BS_CENTER*ENCODER_MULTIPLIER;
     	break;
     case ENC_BACK_FRONT:
-    	enc -= BF_CENTER;
+    	enc -= BF_CENTER*ENCODER_MULTIPLIER;
     	enc = enc * -1;
     	break;
     case ENC_FRONT_SIDE:
-    	enc -= FS_CENTER;
+    	enc -= FS_CENTER*ENCODER_MULTIPLIER;
     	break;
     case ENC_FRONT_FRONT:
-    	enc -= FF_CENTER;
+    	enc -= FF_CENTER*ENCODER_MULTIPLIER;
     	enc = enc * -1;
     	break;
     default:
@@ -55,9 +55,9 @@ int32_t EncoderRead(uint32_t channel)
     }
     /* Make sure enc is a positive value in the range 0-360 */
     while(enc < 0) {
-    	enc += 360;
+    	enc += ENCODER_RANGE;
     }
-    enc = enc % 360;
+    enc = enc % ENCODER_RANGE;
     return enc;
     err:
     return (-1);

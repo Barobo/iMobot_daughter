@@ -410,7 +410,13 @@ void slave_write_register(uint8_t reg, uint8_t dat)
     if(dat & 0x80) {
       motor[motor_index].desired_position |= 0xFFFF0000;
     }
-    set_motor_position_abs(motor_index, motor[motor_index].desired_position, motor[motor_index].speed);
+    /* If the motor direction is AUTO, start moving the motor towards the goal */
+    if(motor[motor_index].direction == MOTOR_DIR_AUTO) {
+      set_motor_position_abs(
+          motor_index, 
+          motor[motor_index].desired_position, 
+          motor[motor_index].speed);
+    }
   }
   if( (0x0F&reg) == 0x03) {
     /* Write to the low byte of the motor position */
@@ -418,16 +424,39 @@ void slave_write_register(uint8_t reg, uint8_t dat)
     motor[motor_index].desired_position &= 0xFFFFFF00;
     /* Now write it */
     motor[motor_index].desired_position |= (uint16_t) (0x00FF & dat);
-    set_motor_position_abs(motor_index, motor[motor_index].desired_position, motor[motor_index].speed);
+    /* If the motor direction is AUTO, start moving the motor towards the goal */
+    if(motor[motor_index].direction == MOTOR_DIR_AUTO) {
+      set_motor_position_abs(
+          motor_index, 
+          motor[motor_index].desired_position, 
+          motor[motor_index].speed);
+    }
   }
   if( (0x0F&reg) == 0x04) {
     /* Set the "direction" register */
     motor[motor_index].direction = dat;
+    /* If the new direction is not AUTO, start turning the motor in that
+     * direction at the motor speed. */
+    if(motor[motor_index].direction == MOTOR_DIR_FORWARD) {
+      set_motor_speed(motor_index, motor[motor_index].speed);
+    } else if (motor[motor_index].direction == MOTOR_DIR_BACKWARD) {
+      set_motor_speed(motor_index, -1*motor[motor_index].speed);
+    }
   }
   if( (0x0F&reg) == 0x05) {
     /* Set the "speed" register */
     motor[motor_index].speed = dat;
-    set_motor_position_abs(motor_index, motor[motor_index].desired_position, motor[motor_index].speed);
+    /* Check the direction register. If set to AUTO, do not start moving the
+     * motor yet. */
+    if(motor[motor_index].direction == MOTOR_DIR_FORWARD) {
+      set_motor_speed(motor_index, dat);
+    } else if (motor[motor_index].direction == MOTOR_DIR_BACKWARD) {
+      set_motor_speed(motor_index, -dat);
+    }
+    /* If setting the motor speed to zero, stop the motor immediately */
+    if(motor[motor_index].speed == 0) {
+      set_motor_speed(motor_index, 0);
+    }
   }
 }
 

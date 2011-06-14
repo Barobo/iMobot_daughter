@@ -18,6 +18,9 @@
 #define EINT2_RISING	0x00000004
 #define EINT3_RISING	0x00000008
 
+#define ENCODER_RANGE 3600
+#define ENCODER_MULTIPLIER 10
+
 extern void PrintAllEncoders(void);
 extern void EncoderInit(void);
 extern int32_t EncoderRead(uint32_t channel);

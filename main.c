@@ -23,7 +23,7 @@ void msleep(uint32_t milliseconds)
 	while(now < (current_time + milliseconds));
 }
 
-
+double g_motorHandlerTimestep;
 int main(void)
 {
 	int i;
@@ -37,6 +37,7 @@ int main(void)
     TimerInit(0, 1ul * _millisecond);
     CallbackRegister(MotorHandler, 7ul * _millisecond);
     CallbackEnable(MotorHandler);
+    g_motorHandlerTimestep = 0.007;
     TimerEnable(0);
     EncoderInit();
     MotorInit();
