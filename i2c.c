@@ -441,22 +441,27 @@ void slave_write_register(uint8_t reg, uint8_t dat)
       set_motor_speed(motor_index, motor[motor_index].speed);
     } else if (motor[motor_index].direction == MOTOR_DIR_BACKWARD) {
       set_motor_speed(motor_index, -1*motor[motor_index].speed);
+    } else {
+      set_motor_position_abs(
+          motor_index, 
+          motor[motor_index].desired_position, 
+          motor[motor_index].speed);
     }
   }
   if( (0x0F&reg) == 0x05) {
     /* Set the "speed" register */
     motor[motor_index].speed = dat;
+    /* If setting the motor speed to zero, stop the motor immediately */
+    if(motor[motor_index].speed == 0) {
+      set_motor_speed(motor_index, 0);
+    }
     /* Check the direction register. If set to AUTO, do not start moving the
      * motor yet. */
     if(motor[motor_index].direction == MOTOR_DIR_FORWARD) {
       set_motor_speed(motor_index, dat);
     } else if (motor[motor_index].direction == MOTOR_DIR_BACKWARD) {
       set_motor_speed(motor_index, -dat);
-    }
-    /* If setting the motor speed to zero, stop the motor immediately */
-    if(motor[motor_index].speed == 0) {
-      set_motor_speed(motor_index, 0);
-    }
+    }   
   }
 }
 

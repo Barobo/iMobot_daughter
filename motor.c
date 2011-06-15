@@ -75,6 +75,8 @@ void set_motor_speed(uint32_t channel, int cycle)
 {
     if(cycle != 0) {
         motor[channel].state = MOTOR_MOVING;
+    } else {
+        motor[channel].state = MOTOR_IDLE;
     }
     /* The direction for the back-side motor has been flipflopped. */
     if(channel == MOTOR_BACK_SIDE) {
@@ -253,6 +255,11 @@ void MotorHandler(void)
     /* Check the position of each motor to see if it has reached its goal */
     for(i = 0; i < 4; i++) {
         if(motor[i].state == MOTOR_IDLE) {
+            continue;
+        }
+        /* If both the "direction" and "speed" are set on the motor, do not
+         * stop it. */
+        if(motor[i].direction != MOTOR_DIR_AUTO && motor[i].speed != 0) {
             continue;
         }
 
