@@ -263,6 +263,7 @@ void MotorHandler(void)
             continue;
         }
 
+        /* If the motor has reached its goal, stop it */
     	if (ABS(enc[i] - motor[i].desired_position) < MOTOR_GOAL_TOLERANCE)
     	{
             /* Stop the motor */
@@ -272,6 +273,7 @@ void MotorHandler(void)
             continue;
     	}
 
+        /* Motor PID control */
         if(motor[i].pid_flag) {
             err = abs_angle_diff(motor[i].desired_position, enc[i]);
             gain = (double)motor[i].speed / (double)MOTOR_CONTROL_TOLERANCE;
@@ -287,6 +289,8 @@ void MotorHandler(void)
             continue;
         }
 
+        /* If the motor gets "kind of" close, enable the PID controler for the
+         * last few degrees */
     	if (ABS(enc[i] - motor[i].desired_position) < MOTOR_CONTROL_TOLERANCE)
     	{
             motor[i].pid_integ = 0;

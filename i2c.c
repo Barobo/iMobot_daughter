@@ -487,6 +487,10 @@ void slave_read_register(uint8_t reg)
     /* read the "speed" register */
     LPC_I2C0->I2DAT = 0x00FF & (motor[motor_index].speed);
   }
+  if( (0x0F&reg) == 0x07) {
+    /* Read the motor status */
+    LPC_I2C0->I2DAT = 0x0FF & (motor[motor_index].state);
+  }
 }
 
 void slave_reset()
