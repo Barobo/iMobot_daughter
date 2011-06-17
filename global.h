@@ -20,7 +20,7 @@
 #define ABS(a)     (((a) < 0) ? -(a) : (a))
 
 /* Center positions for each joint */
-#define FS_CENTER 250
+#define FS_CENTER 245
 #define BS_CENTER 45
 #define FF_CENTER 29
 #define BF_CENTER 160

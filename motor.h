@@ -75,6 +75,7 @@ typedef struct
     double pid_flag;  /* Flag for if currently in PID control or not */
     double pid_integ; /* Integrator for PID control */
     double pid_integ_gain; 
+    int32_t rotation;
 }motor_t;
 
 extern motor_t motor[4];

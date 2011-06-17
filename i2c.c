@@ -343,7 +343,7 @@ void slave_recv_state_machine(uint32_t I2C_state)
           /* This is the first byte we are receiving. This byte will indicate
            * the register address to write/read to. */
           /* Check to make sure address is within bounds */
-          if(dat < 0x30 || dat > 0x65) {
+          if(dat < 0x30 || dat > 0x67) {
             reply_nack();
             break;
           }
@@ -489,7 +489,7 @@ void slave_read_register(uint8_t reg)
   }
   if( (0x0F&reg) == 0x07) {
     /* Read the motor status */
-    LPC_I2C0->I2DAT = 0x0FF & (motor[motor_index].state);
+    LPC_I2C0->I2DAT = motor[motor_index].state;
   }
 }
 

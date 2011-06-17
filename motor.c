@@ -66,6 +66,7 @@ uint32_t MotorInit()
         motor[i].pid_flag = 0;
         motor[i].pid_integ = 0;
         motor[i].pid_integ_gain = 5;
+        motor[i].rotation = 0;
     }
     return 1;
 }
@@ -222,6 +223,22 @@ void MotorHandler(void)
     enc[MOTOR_BACK_SIDE] = EncoderRead(ENC_BACK_SIDE);
     enc[MOTOR_FRONT_FRONT] = EncoderRead(ENC_FRONT_FRONT);
     enc[MOTOR_FRONT_SIDE] = EncoderRead(ENC_FRONT_SIDE);
+    /* Fix the values of the fully rotation endplates, which are 1 to 4 */
+    for(i = 2; i < 4; i++) {
+        if(enc[i] < 300 && last_enc[i] > 2300) {
+            motor[i].rotation++;
+            if(i == 2) printf("%d\n", motor[i].rotation);
+        }
+        else if(enc[i] > 2300 && last_enc[i] < 300) {
+            motor[i].rotation--;
+            if(i == 2) printf("%d\n", motor[i].rotation);
+        }
+        last_enc[i] = enc[i];
+        enc[i] = enc[i]/4 + motor[i].rotation*900;
+        while(enc[i] < 0) {
+            enc[i] += 3600;
+        }
+    }
     for(i = 0; i < 4; i++) {
         g_enc[i] = enc[i];
     }
