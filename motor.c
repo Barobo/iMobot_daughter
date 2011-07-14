@@ -227,11 +227,9 @@ void MotorHandler(void)
     for(i = 2; i < 4; i++) {
         if(enc[i] < 300 && last_enc[i] > 2300) {
             motor[i].rotation++;
-            if(i == 2) printf("%d\n", motor[i].rotation);
         }
         else if(enc[i] > 2300 && last_enc[i] < 300) {
             motor[i].rotation--;
-            if(i == 2) printf("%d\n", motor[i].rotation);
         }
         last_enc[i] = enc[i];
         enc[i] = enc[i]/4 + motor[i].rotation*900;
