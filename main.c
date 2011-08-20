@@ -9,9 +9,10 @@
 #include "adc.h"
 #include "uart.h"
 #include "i2c.h"
+#include "i2c_sensor.h"
 #include "motions.h"
 
-#define HOME
+//#define HOME
 
 uint32_t get_ir_sen(void);
 char buffer[30];
@@ -35,17 +36,32 @@ int main(void)
     //AdcInit();
 
     TimerInit(0, 1ul * _millisecond);
-    CallbackRegister(MotorHandler, 7ul * _millisecond);
-    CallbackEnable(MotorHandler);
-    g_motorHandlerTimestep = 0.007;
+    //CallbackRegister(MotorHandler, 7ul * _millisecond);
+    //CallbackEnable(MotorHandler);
+    //g_motorHandlerTimestep = 0.007;
     TimerEnable(0);
-    EncoderInit();
-    MotorInit();
-    MotorStart();
+    //EncoderInit();
+    //MotorInit();
+    //MotorStart();
 
-    I2cInit(SENSOR_BUS);
-    I2cInit(MODULE_BUS);
+    sensor_init();
+    //I2cInit(MODULE_BUS);
     current_time = now;
+
+    sensor_poll_loop();
+
+    while (1)
+    {
+        //sensor_write(0x02, 0x90, 0);
+        //msleep(500);
+
+        //sensor_write(0x02, 0x90, 1);
+        //msleep(500);
+
+        //i = sensor_read(0x02, 0x10);
+        //sensor_write(0x02, 0x90, i);
+        //msleep(100);
+    }
 
     msleep(3000);
 
@@ -285,9 +301,7 @@ int main(void)
 
 uint32_t get_ir_sen(void)
 {
-    uint32_t buf[10];
-    buf[0] = 0;
-    I2cWrite(SENSOR_BUS, 0x90, buf, 2);
-    return I2cRead(SENSOR_BUS, 0x90, 1);
+    sensor_write(0x90, 1, 0);
+    return sensor_read(0x90, 1);
 }
 

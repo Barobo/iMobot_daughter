@@ -9,7 +9,6 @@
 #define I2CSLAVE            0x02
 
 #define MODULE_BUS 0
-#define SENSOR_BUS 1
 #define EEPROM_BUS 2
 
 typedef struct
@@ -85,7 +84,6 @@ typedef struct
 #define I2SCLL_SCLL         0x00000080  /* I2C SCL Duty Cycle Low Reg */
 
 extern void I2C0_IRQHandler(void);
-extern void I2C1_IRQHandler(void);
 extern void I2C2_IRQHandler(void);
 extern void I2cInit(uint8_t module);
 extern uint32_t I2cStart(uint8_t module);
