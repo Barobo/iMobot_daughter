@@ -8,7 +8,6 @@
 #define I2CMASTER           0x01
 #define I2CSLAVE            0x02
 
-#define MODULE_BUS 0
 #define EEPROM_BUS 2
 
 typedef struct
@@ -83,7 +82,6 @@ typedef struct
 #define I2SCLH_SCLH         0x00000080  /* I2C SCL Duty Cycle High Reg */
 #define I2SCLL_SCLL         0x00000080  /* I2C SCL Duty Cycle Low Reg */
 
-extern void I2C0_IRQHandler(void);
 extern void I2C2_IRQHandler(void);
 extern void I2cInit(uint8_t module);
 extern uint32_t I2cStart(uint8_t module);
@@ -93,9 +91,4 @@ extern uint32_t I2cWrite(uint8_t module, uint32_t address, uint32_t data[],
         uint32_t size);
 extern uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size);
 
-void slave_recv_state_machine(uint32_t I2C_state);
-void slave_write_register(uint8_t reg, uint8_t dat);
-void slave_read_register(uint8_t reg);
-void reply_ack();
-void reply_nack();
 #endif

@@ -3,11 +3,14 @@
 #include "motor.h"
 #include "i2c_sensor.h"
 #include "i2c.h"
+#include "timer.h"
 
 #include "consoleprint.h"
 
 volatile i2c_bus_t sensor_bus;
 uint32_t sensor_memory[NUM_SENSORS+1][256];
+uint32_t sensor_polling_mode = SENSOR_POLLING_MODE_POLL;
+uint32_t sensor_polling_rate = 100;
 
 void sensor_init()
 {
@@ -211,9 +214,16 @@ void sensor_poll_loop()
 {
 	uint32_t sensor;
 	uint32_t i;
+	uint32_t addr;
+	uint32_t loop_start_time;
 
 	while (1)
 	{
+		loop_start_time = now;
+
+		if (sensor_polling_mode != SENSOR_POLLING_MODE_POLL)
+			continue;
+
 		for (sensor=1; sensor<=NUM_SENSORS; sensor++)
 		{
 			sensor_read(sensor, SENSOR_ADDR_ADDRESS);
@@ -231,6 +241,49 @@ void sensor_poll_loop()
 
 			sensor_read(sensor, SENSOR_ADDR_NUM_WRITE_ENDPOINTS);
 			sensor_read(sensor, SENSOR_ADDR_START_WRITE_ENDPOINTS);
+			for (i=0; i<sensor_memory[sensor][SENSOR_ADDR_NUM_WRITE_ENDPOINTS]; i++)
+			{
+				addr = sensor_memory[sensor][SENSOR_ADDR_START_WRITE_ENDPOINTS]+i;
+				sensor_write(sensor, addr, sensor_memory[sensor][addr]);
+			}
 		}
+
+		// sleep until next poll
+		while (now - loop_start_time < sensor_polling_rate)
+			continue;
 	}
+}
+
+void sensor_set_polling_mode(uint32_t mode)
+{
+	sensor_polling_mode = mode;
+}
+void sensor_set_polling_rate(uint32_t rate)
+{
+	sensor_polling_rate = rate;
+}
+
+uint32_t sensor_get_polling_mode()
+{
+	return sensor_polling_mode;
+}
+uint32_t sensor_get_polling_rate()
+{
+	return sensor_polling_rate;
+}
+
+void sensor_set_value(uint32_t sensor, uint32_t reg, uint32_t val)
+{
+	if (sensor_polling_mode == SENSOR_POLLING_MODE_POLL)
+		sensor_memory[sensor][reg] = val;
+	else
+		sensor_write(sensor, reg, val);
+}
+
+uint32_t sensor_get_value(uint32_t sensor, uint32_t reg)
+{
+	if (sensor_polling_mode == SENSOR_POLLING_MODE_POLL)
+		return sensor_memory[sensor][reg];
+	else
+		return sensor_read(sensor, reg);
 }

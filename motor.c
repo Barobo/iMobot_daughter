@@ -214,7 +214,6 @@ void MotorHandler(void)
   int32_t enc[4];
 	static int32_t last_enc[4];
     int i;
-    static int count;
     double gain;
     int32_t err;
     int32_t pid_out;
@@ -332,7 +331,7 @@ void MotorHandler(void)
 int32_t abs_angle_diff(int32_t a, int32_t b)
 {
     /* Get the two numbers to within 180 of each other */
-    while(abs(a - b) >= 180*ENCODER_MULTIPLIER) {
+    while (((a - b) >= 180*ENCODER_MULTIPLIER) || ((b - a) >= (180*ENCODER_MULTIPLIER))) {
         if(a > b) {
             a -= 360*ENCODER_MULTIPLIER;
         } else {
@@ -340,4 +339,39 @@ int32_t abs_angle_diff(int32_t a, int32_t b)
         }
     }
     return a-b;
+}
+
+
+void motor_set_direction(uint32_t motor_index, uint32_t dir)
+{
+	// Set the "direction" register
+	motor[motor_index].direction = dir;
+
+	// If the new direction is not AUTO, start turning the motor in that
+	// direction at the motor speed.
+	if(motor[motor_index].direction == MOTOR_DIR_FORWARD) {
+		set_motor_speed(motor_index, motor[motor_index].speed);
+	} else if (motor[motor_index].direction == MOTOR_DIR_BACKWARD) {
+		set_motor_speed(motor_index, -1*motor[motor_index].speed);
+	} else {
+		set_motor_position_abs(motor_index, motor[motor_index].desired_position, motor[motor_index].speed);
+	}
+}
+
+void motor_set_speed(uint32_t motor_index, uint32_t speed)
+{
+	// Set the "speed" register
+	motor[motor_index].speed = speed;
+
+	// If setting the motor speed to zero, stop the motor immediately
+	if(motor[motor_index].speed == 0) {
+		set_motor_speed(motor_index, 0);
+	}
+
+	// Check the direction register. If set to AUTO, do not start moving the motor yet.
+	if(motor[motor_index].direction == MOTOR_DIR_FORWARD) {
+		set_motor_speed(motor_index, speed);
+	} else if (motor[motor_index].direction == MOTOR_DIR_BACKWARD) {
+		set_motor_speed(motor_index, -speed);
+	}
 }

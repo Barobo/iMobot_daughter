@@ -9,6 +9,7 @@
 #include "adc.h"
 #include "uart.h"
 #include "i2c.h"
+#include "i2c_module.h"
 #include "i2c_sensor.h"
 #include "motions.h"
 
@@ -45,7 +46,7 @@ int main(void)
     //MotorStart();
 
     sensor_init();
-    //I2cInit(MODULE_BUS);
+    module_init();
     current_time = now;
 
     sensor_poll_loop();

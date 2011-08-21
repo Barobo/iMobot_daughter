@@ -89,13 +89,19 @@ enum
     MOTOR_GOALSEEK = 2,
 };
 
-extern uint32_t MotorInit();
-extern void set_motor_speed(uint32_t channel, int cycle);
+int32_t abs_angle_diff(int32_t a, int32_t b);
+
+uint32_t MotorInit();
+void set_motor_speed(uint32_t channel, int cycle);
 void set_motor_position(uint32_t channel, int32_t position, int8_t direction_speed);
 void set_motor_position_abs(uint32_t channel, int32_t position, int8_t speed);
 void wait_motor(uint32_t channel);
-extern void MotorStart();
-extern void MotorStop();
-extern void MotorHandler(void);
+void MotorStart();
+void MotorStop();
+void MotorHandler(void);
+
+// for external use
+extern void motor_set_direction(uint32_t channel, uint32_t dir);
+extern void motor_set_speed(uint32_t motor_index, uint32_t speed);
 
 #endif /* MOTOR_H_ */

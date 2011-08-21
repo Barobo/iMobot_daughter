@@ -21,6 +21,13 @@ enum
     SENSOR_ADDR_NUM_WRITE_ENDPOINTS = 0x05,
     SENSOR_ADDR_START_WRITE_ENDPOINTS = 0x06,
 };
+
+enum
+{
+	SENSOR_POLLING_MODE_POLL = 0x00,
+	SENSOR_POLLING_MODE_IMMEDIATE = 0x01
+};
+
 extern void sensor_init();
 extern uint32_t sensor_start();
 extern uint32_t sensor_stop();
@@ -28,6 +35,14 @@ extern uint32_t sensor_engine();
 extern void sensor_write(uint32_t address, uint32_t reg, uint32_t val);
 extern uint32_t sensor_read(uint32_t address, uint32_t reg);
 extern void sensor_poll_loop();
+
+extern void sensor_set_polling_mode(uint32_t mode);
+extern void sensor_set_polling_rate(uint32_t rate);
+extern uint32_t sensor_get_polling_mode();
+extern uint32_t sensor_get_polling_rate();
+extern void sensor_set_value(uint32_t address, uint32_t reg, uint32_t val);
+extern uint32_t sensor_get_value(uint32_t address, uint32_t reg);
+
 
 extern void I2C1_IRQHandler(void);
 
