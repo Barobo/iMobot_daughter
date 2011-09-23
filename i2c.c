@@ -205,6 +205,14 @@ uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size)
 
 void I2C0_IRQHandler(void) // MODULE
 {
+    printf("Whee!\n");
+    //LPC_I2C0->I2CONSET |= I2CONSET_SI;
+    //while(LPC_I2C0->I2CONSET | I2CONSET_SI == 0); /* Wait for SI to be set */
+    printf("STATE: 0x%X DATA: 0x%X DATABUF: 0x%X SI:0x%X\n", 
+      LPC_I2C0->I2STAT, LPC_I2C0->I2DAT, LPC_I2C0->I2DATA_BUFFER, LPC_I2C0->I2CONSET&I2CONSET_SI);
+    LPC_I2C0->I2CONSET = I2CONSET_AA; // assert ACK after data is received
+    LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
+    return;
     switch(LPC_I2C0->I2STAT)
     {
         case 0x0: /* Error */
@@ -284,6 +292,7 @@ void I2C0_IRQHandler(void) // MODULE
             else
             {
                 i2c_bus[MODULE_BUS].read_index = 0;
+                printf("I2c read length: %d\n", i2c_bus[MODULE_BUS].read_length);
                 i2c_bus[MODULE_BUS].master_state = DATA_NACK;
             }
             LPC_I2C0->I2CONSET = I2CONSET_AA; // assert ACK after data is received
@@ -303,12 +312,9 @@ void I2C0_IRQHandler(void) // MODULE
         case SR_DATA_RECV_ACK:
         case SR_GEN_CALL_DATA:
         case SR_STOP:
-        case ST_ADDRESSED:
-        case ST_TRANSMIT_ACK:
-        case ST_TRANSMIT_NACK:
-          //slave_reset();
-          //LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
-          //break;
+          slave_reset();
+          LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
+          break;
           slave_recv_state_machine(LPC_I2C0->I2STAT);
           LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
           break;
@@ -334,16 +340,20 @@ void slave_recv_state_machine(uint32_t I2C_state)
   uint8_t dat;
   switch(I2C_state) {
     case SR_ADDRESSED: /* We have been addressed. */
+      printf("Addressed.\n");
       reply_ack();
       break;
     case SR_DATA_RECV_ACK:
       dat = LPC_I2C0->I2DAT;
+      printf("Recv: Received data: %x\n", dat);
+      reply_ack(); /* DEBUG */
+      break;
       switch(state) {
         case SLAVE_IDLE:
           /* This is the first byte we are receiving. This byte will indicate
            * the register address to write/read to. */
           /* Check to make sure address is within bounds */
-          if(dat < 0x30 || dat > 0x67) {
+          if(dat < 0x30 || dat > 0x65) {
             reply_nack();
             break;
           }
@@ -364,29 +374,8 @@ void slave_recv_state_machine(uint32_t I2C_state)
       }
       break;
     case SR_STOP:
-      reply_ack();
-      break;
-
-    /* 
-     * Slave Transmitter States *
-     */
-    case ST_ADDRESSED:
-      /* Make sure we are in the "SLAVE_RECV" state, which means a valid
-       * address has been loaded into the register. */
-      if(state != SLAVE_RECV) {
-        reply_nack();
-        state = SLAVE_IDLE;
-        break;
-      } else {
-        slave_read_register(reg);
-        state = SLAVE_IDLE;
-        reply_ack();
-        break;
-      }
-      break;
-    case ST_TRANSMIT_NACK:
-      reply_ack();
       state = SLAVE_IDLE;
+      reply_ack();
       break;
     default:
       reply_nack();
@@ -398,99 +387,24 @@ void slave_recv_state_machine(uint32_t I2C_state)
 void slave_write_register(uint8_t reg, uint8_t dat)
 {
   uint8_t motor_index;
-  motor_index = (reg>>4) - 3;
+  motor_index = (reg>>8) - 3;
   /* if lower word is "2" or "3", we want to write to motor positions. */
-  if( (0x0F&reg) == 0x02) {
+  if( 0x0F&reg == 2) {
     /* Write to the high byte of the motor position */
     /* First, clear high byte */
     motor[motor_index].desired_position &= 0x00FF;
     /* Now write it */
     motor[motor_index].desired_position |= dat<<8;
-    /* If the highest bit is set, it must be a negative number. */
-    if(dat & 0x80) {
-      motor[motor_index].desired_position |= 0xFFFF0000;
-    }
-    /* If the motor direction is AUTO, start moving the motor towards the goal */
-    if(motor[motor_index].direction == MOTOR_DIR_AUTO) {
-      set_motor_position_abs(
-          motor_index, 
-          motor[motor_index].desired_position, 
-          motor[motor_index].speed);
-    }
   }
-  if( (0x0F&reg) == 0x03) {
+  if( 0x0F&reg == 3) {
     /* Write to the low byte of the motor position */
     /* First, clear low byte */
-    motor[motor_index].desired_position &= 0xFFFFFF00;
+    motor[motor_index].desired_position &= 0xFF00;
     /* Now write it */
     motor[motor_index].desired_position |= (uint16_t) (0x00FF & dat);
-    /* If the motor direction is AUTO, start moving the motor towards the goal */
-    if(motor[motor_index].direction == MOTOR_DIR_AUTO) {
-      set_motor_position_abs(
-          motor_index, 
-          motor[motor_index].desired_position, 
-          motor[motor_index].speed);
-    }
   }
-  if( (0x0F&reg) == 0x04) {
-    /* Set the "direction" register */
-    motor[motor_index].direction = dat;
-    /* If the new direction is not AUTO, start turning the motor in that
-     * direction at the motor speed. */
-    if(motor[motor_index].direction == MOTOR_DIR_FORWARD) {
-      set_motor_speed(motor_index, motor[motor_index].speed);
-    } else if (motor[motor_index].direction == MOTOR_DIR_BACKWARD) {
-      set_motor_speed(motor_index, -1*motor[motor_index].speed);
-    } else {
-      set_motor_position_abs(
-          motor_index, 
-          motor[motor_index].desired_position, 
-          motor[motor_index].speed);
-    }
-  }
-  if( (0x0F&reg) == 0x05) {
-    /* Set the "speed" register */
-    motor[motor_index].speed = dat;
-    /* If setting the motor speed to zero, stop the motor immediately */
-    if(motor[motor_index].speed == 0) {
-      set_motor_speed(motor_index, 0);
-    }
-    /* Check the direction register. If set to AUTO, do not start moving the
-     * motor yet. */
-    if(motor[motor_index].direction == MOTOR_DIR_FORWARD) {
-      set_motor_speed(motor_index, dat);
-    } else if (motor[motor_index].direction == MOTOR_DIR_BACKWARD) {
-      set_motor_speed(motor_index, -dat);
-    }   
-  }
-}
-
-void slave_read_register(uint8_t reg)
-{
-  int32_t* enc = g_enc;
-  uint8_t motor_index;
-  motor_index = (reg>>4) - 3;
-  /* if lower word is "2" or "3", we want to read motor positions. */
-  if( (0x0F&reg) == 0x02) {
-    /* read the high byte of the motor position */
-    LPC_I2C0->I2DAT = 0x00FF & (enc[motor_index]>>8);
-  }
-  if( (0x0F&reg) == 0x03) {
-    /* read the low byte of the motor position */
-    LPC_I2C0->I2DAT = 0x00FF & (enc[motor_index]);
-  }
-  if( (0x0F&reg) == 0x04) {
-    /* read the "direction" register */
-    LPC_I2C0->I2DAT = 0x00FF & (motor[motor_index].direction);
-  }
-  if( (0x0F&reg) == 0x05) {
-    /* read the "speed" register */
-    LPC_I2C0->I2DAT = 0x00FF & (motor[motor_index].speed);
-  }
-  if( (0x0F&reg) == 0x07) {
-    /* Read the motor status */
-    LPC_I2C0->I2DAT = motor[motor_index].state;
-  }
+  //set_motor_position_abs(motor_index, motor[motor_index].desired_position, I2C_MOTOR_SPEED);
+  printf("Set motor %d to position 0x%X\n", motor_index, motor[motor_index].desired_position);
 }
 
 void slave_reset()

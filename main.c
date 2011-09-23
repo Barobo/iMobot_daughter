@@ -11,7 +11,7 @@
 #include "i2c.h"
 #include "motions.h"
 
-#define HOME
+//#define HOME
 
 uint32_t get_ir_sen(void);
 char buffer[30];
@@ -246,20 +246,10 @@ int main(void)
 
 #endif
 
-    while(1);
-    // center the wheels if they aren't already
-    set_motor_position(MOTOR_FRONT_FRONT, FF_CENTER, 70);
-    set_motor_position(MOTOR_BACK_FRONT,  BF_CENTER, 72);
-    while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
-
-    current_time = now;
-    while(now < current_time + 5000);
-
-
-
+    //while(1);
 
     // ofset one side 50% before we start rolling
-    set_motor_position(MOTOR_BACK_FRONT,BF_CENTER + 50, 72);
+    set_motor_position(MOTOR_BACK_FRONT, 450, 72);
     while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
     current_time = now;
     while(now < current_time + 1000);
@@ -268,16 +258,19 @@ int main(void)
     {
         if (get_ir_sen())
         {
-            set_motor_position(MOTOR_FRONT_FRONT, FF_CENTER + 50, -70);
-            set_motor_position(MOTOR_BACK_FRONT,  BF_CENTER, -72);
-            while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
+          motor[MOTOR_FRONT_FRONT].direction = 2;
+          motor[MOTOR_BACK_FRONT].direction = 2;
+          set_motor_speed(MOTOR_FRONT_FRONT, -50);
+          set_motor_speed(MOTOR_BACK_FRONT, 50);
+          msleep(250);
         }
         else
         {
-            set_motor_position(MOTOR_FRONT_FRONT, FF_CENTER, 70);
-            set_motor_position(MOTOR_BACK_FRONT,  BF_CENTER + 50, 72);
-            while (motor[MOTOR_FRONT_FRONT].state == MOTOR_MOVING && motor[MOTOR_BACK_FRONT].state == MOTOR_MOVING);
-
+          motor[MOTOR_FRONT_FRONT].direction = 1;
+          motor[MOTOR_BACK_FRONT].direction = 1;
+          set_motor_speed(MOTOR_FRONT_FRONT, 50);
+          set_motor_speed(MOTOR_BACK_FRONT, -50);
+          msleep(250);
         }
     }
     return 0;
