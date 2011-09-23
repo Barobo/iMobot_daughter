@@ -205,11 +205,10 @@ uint32_t I2cRead(uint8_t module, uint32_t address, uint32_t size)
 
 void I2C0_IRQHandler(void) // MODULE
 {
-    printf("Whee!\n");
     //LPC_I2C0->I2CONSET |= I2CONSET_SI;
     //while(LPC_I2C0->I2CONSET | I2CONSET_SI == 0); /* Wait for SI to be set */
-    printf("STATE: 0x%X DATA: 0x%X DATABUF: 0x%X SI:0x%X\n", 
-      LPC_I2C0->I2STAT, LPC_I2C0->I2DAT, LPC_I2C0->I2DATA_BUFFER, LPC_I2C0->I2CONSET&I2CONSET_SI);
+    //printf("STATE: 0x%X DATA: 0x%X DATABUF: 0x%X SI:0x%X\n",
+    //  LPC_I2C0->I2STAT, LPC_I2C0->I2DAT, LPC_I2C0->I2DATA_BUFFER, LPC_I2C0->I2CONSET&I2CONSET_SI);
     LPC_I2C0->I2CONSET = I2CONSET_AA; // assert ACK after data is received
     LPC_I2C0->I2CONCLR = I2CONCLR_SIC;
     return;
